@@ -9,10 +9,15 @@
 #define CONTAINER_H_
 
 #include <gtkmm.h>
+#include <fluidsynth.h>
+#include <gdk/gdkkeysyms.h>
+
 class EmapContainer: public Gtk::Window {
 public:
-	EmapContainer();
+	EmapContainer(fluid_synth_t* synth);
 	~EmapContainer();
+
+
 
 protected:
 
@@ -20,9 +25,15 @@ protected:
 	public:
 		ModelColumns() {
 			add(name);
+			add(path);
+			add(bank);
+			add(program);
 		}
 
 		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<Glib::ustring> path;
+		Gtk::TreeModelColumn<int> bank;
+		Gtk::TreeModelColumn<int> program;
 	};
 
 	Gtk::Table *container, *path_container;
@@ -34,17 +45,25 @@ protected:
 	Glib::RefPtr<Gtk::TreeStore> model;
 	ModelColumns columns;
 	Gtk::Button *set_root_folder_button, *quit_button;
-	const char *homedir;
+	std::string root_folder, home_dir, config_file;
+	fluid_synth_t* synth; //the fluid synth instance
+	fluid_sfont_t* soundfont; //the loaded soundfont
+	std::map<Glib::ustring,int> presets; //map for holding build out presets.
 
-	void on_enumerate_clicked();
 	//Signal handlers:
 	void on_button_clicked();
 	void on_button_quit();
+	bool on_key_press_or_release_event(GdkEventKey* event);
+	void on_selection_changed();
+	bool is_soundfont(const char * filename);
+	void loadTree(const char*, const char* root_folder,
+			const Gtk::TreeModel::Row row);
+	void set_root_folder(const char* root_folder);
 
-	void loadTree(const char* path);
+
+
+
 
 };
-
-
 
 #endif /* CONTAINER_H_ */
