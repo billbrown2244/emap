@@ -125,14 +125,13 @@
 		<pangommlib>pangomm-1.4</pangommlib>		
 		<sigclib>sigc-2.0</sigclib>		
 		<sigcpplib>sigc++-2.0</sigcpplib>
+		<aol>amd64-Linux-gpp</aol>
 	</properties>
 
 	<profiles>
 		<profile>
-			<id>win-32</id>
-			<properties>
-
-			</properties>
+			<id>x86-Windows-g++</id>
+			<properties></properties>
 		</profile>
 	</profiles>
 
