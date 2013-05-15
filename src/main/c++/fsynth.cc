@@ -37,7 +37,7 @@ FSynth::~FSynth() {
 
 int handle_midi_event(void* data, fluid_midi_event_t* event) {
 
-	try {
+	//try {
 
 		fluid_synth_t* synth = (fluid_synth_t*) data;
 
@@ -129,9 +129,9 @@ int handle_midi_event(void* data, fluid_midi_event_t* event) {
 		//fluid_synth_noteon((fluid_synth_t*)data, , 60, 100);
 		// return fluid_synth_handle_midi_event(data, event);
 
-	} catch (std::exception& e) {
-		std::cout << "Standard exception: " << e.what() << std::endl;
-	}
+	//} catch (std::exception& e) {
+	//	std::cout << "Standard exception: " << e.what() << std::endl;
+	//}
 
 	return 0;
 }

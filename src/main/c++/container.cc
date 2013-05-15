@@ -214,7 +214,7 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 	//std::cout << "orig_path: " << path << std::endl;
 	//std::cout << "path again: " << path << std::endl;
 
-	try {
+	//try {
 
 		Glib::RefPtr<Gio::File> file = Gio::File::create_for_path(path);
 		Glib::RefPtr<Gio::FileEnumerator> child_enumeration =
@@ -304,9 +304,9 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 		}
 
 		std::sort(file_names.begin(), file_names.end());
-	} catch (int e) {
-		std::cout << "An exception occurred. Exception Nr. " << e << std::endl;
-	}
+	//} catch (int e) {
+	//	std::cout << "An exception occurred. Exception Nr. " << e << std::endl;
+	//}
 }
 
 bool EmapContainer::is_soundfont(const char * filename) {

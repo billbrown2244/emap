@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv,
 			"org.gtkmm.examples.base");
 
-	try {
+	//try {
 
 		//Connect front end and synth
 		FSynth fsynth;
@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
 		//Shows the window and returns when it is closed.
 		return app->run(emap);
 
-	} catch (std::exception& e) {
+	//} catch (std::exception& e) {
 		//std::cout << "Standard exception: " << e.what() << std::endl;
-	}
+	//}
 }
 
