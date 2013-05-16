@@ -52,13 +52,10 @@ protected:
 
 	Gtk::Table *container, *path_container;
 	Gtk::ScrolledWindow *scrolled;
-	Gtk::Label *path_label;
-	Gtk::Entry *path_entry;
-	Gtk::Button *path_enumerate;
 	Gtk::TreeView *treeview;
 	Glib::RefPtr<Gtk::TreeStore> model;
 	ModelColumns columns;
-	Gtk::Button *set_root_folder_button, *quit_button;
+	Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button, *collapse_all_button;
 	std::string root_folder, home_dir, config_file;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
@@ -67,16 +64,14 @@ protected:
 	//Signal handlers:
 	void on_button_clicked();
 	void on_button_quit();
+	void on_button_expand();
+	void on_button_collapse();
 	bool on_key_press_or_release_event(GdkEventKey* event);
 	void on_selection_changed();
 	bool is_soundfont(const char * filename);
-	void loadTree(const char*, const char* root_folder,
+	void loadTree(const char* orig_root_folder, const char* root_folder,
 			const Gtk::TreeModel::Row row);
 	void set_root_folder(const char* root_folder);
-
-
-
-
 
 };
 

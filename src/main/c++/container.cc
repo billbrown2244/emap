@@ -55,13 +55,15 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 	container = new Gtk::Table(2);
 	scrolled = new Gtk::ScrolledWindow();
-	path_container = new Gtk::Table(1, 2); //2 elements
+	path_container = new Gtk::Table(1, 4); //2 elements
 	//path_label = new Gtk::Label("Path: ");
 	//path_entry = new Gtk::Entry();
 	//path_enumerate = new Gtk::Button("Enumerate");
 	treeview = new Gtk::TreeView;
 	set_root_folder_button = new Gtk::Button("Set Root Folder");
 	quit_button = new Gtk::Button("Quit");
+	expand_all_button = new Gtk::Button("Expand All");
+	collapse_all_button = new Gtk::Button("Collapse All");
 
 	//setup the TreeView
 	model = Gtk::TreeStore::create(columns);
@@ -82,8 +84,6 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 	treeview->add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
 
 	//connect the signals
-	//path_enumerate->signal_clicked().connect(
-	//		sigc::mem_fun(this, &EmapContainer::on_enumerate_clicked));
 
 	set_root_folder_button->signal_clicked().connect(
 			sigc::mem_fun(this, &EmapContainer::on_button_clicked));
@@ -91,25 +91,28 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 	quit_button->signal_clicked().connect(
 			sigc::mem_fun(this, &EmapContainer::on_button_quit));
 
+	expand_all_button->signal_clicked().connect(
+			sigc::mem_fun(this, &EmapContainer::on_button_expand));
+
+	collapse_all_button->signal_clicked().connect(
+			sigc::mem_fun(this, &EmapContainer::on_button_collapse));
+
 	//Connect signal:signal_row_activated
-	Glib::RefPtr<Gtk::TreeSelection> refTreeSelection =
+	Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
 			treeview->get_selection();
 
 	refTreeSelection->signal_changed().connect(
 			sigc::mem_fun(*this, &EmapContainer::on_selection_changed));
 
 	//add the path_* widgets to the path_container
-	/*
-	 path_container->attach(*path_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL,
-	 Gtk::SHRINK);
-	 path_container->attach(*path_entry, 1, 2, 0, 1, Gtk::FILL | Gtk::EXPAND,
-	 Gtk::SHRINK);
-	 path_container->attach(*path_enumerate, 2, 3, 0, 1, Gtk::SHRINK | Gtk::FILL,
-	 Gtk::SHRINK);
-	 */
+
 	path_container->attach(*set_root_folder_button, 0, 1, 0, 1,
 			Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK);
-	path_container->attach(*quit_button, 1, 2, 0, 1, Gtk::SHRINK | Gtk::FILL,
+	path_container->attach(*expand_all_button, 1, 2, 0, 1, Gtk::SHRINK | Gtk::FILL,
+						Gtk::SHRINK);
+	path_container->attach(*collapse_all_button, 2, 3, 0, 1, Gtk::SHRINK | Gtk::FILL,
+				Gtk::SHRINK);
+	path_container->attach(*quit_button, 3, 4, 0, 1, Gtk::SHRINK | Gtk::FILL,
 			Gtk::SHRINK);
 
 	//Setup the ScrolledWindow and add the TreeView in it
@@ -165,9 +168,6 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 EmapContainer::~EmapContainer() {
 	delete treeview;
-	delete path_enumerate;
-	delete path_entry;
-	delete path_label;
 	delete path_container;
 	delete scrolled;
 	delete container;
@@ -223,6 +223,15 @@ void EmapContainer::on_button_quit() {
 	exit(0);
 }
 
+void EmapContainer::on_button_expand() {
+	treeview->expand_all();
+}
+
+void EmapContainer::on_button_collapse() {
+	treeview->collapse_all();
+}
+
+
 void EmapContainer::loadTree(const char* orig_path, const char* path,
 		const Gtk::TreeModel::Row row) {
 	//std::cout << "orig_path: " << path << std::endl;
@@ -230,97 +239,96 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 
 	//try {
 
-		Glib::RefPtr<Gio::File> file = Gio::File::create_for_path(path);
-		Glib::RefPtr<Gio::FileEnumerator> child_enumeration =
-				file->enumerate_children(G_FILE_ATTRIBUTE_STANDARD_NAME);
+	Glib::RefPtr < Gio::File > file = Gio::File::create_for_path(path);
+	Glib::RefPtr < Gio::FileEnumerator > child_enumeration =
+			file->enumerate_children(G_FILE_ATTRIBUTE_STANDARD_NAME);
 
-		std::vector<Glib::ustring> file_names;
-		Glib::RefPtr<Gio::FileInfo> file_info;
-		while ((file_info = child_enumeration->next_file()) != 0) {
+	std::vector < Glib::ustring > file_names;
+	Glib::RefPtr < Gio::FileInfo > file_info;
+	while ((file_info = child_enumeration->next_file()) != 0) {
 
-			std::string fileName = file_info->get_name();
-			if (file_info->get_file_type() == Gio::FILE_TYPE_DIRECTORY) {
+		std::string fileName = file_info->get_name();
+		if (file_info->get_file_type() == Gio::FILE_TYPE_DIRECTORY) {
 
-				//model->clear();
+			//model->clear();
 //
 
-				//std::cout << "found directory: " << fileName << std::endl;
-				//std::cout << "in loadTree" << std::endl;
-				file_names.push_back(fileName);
+			//std::cout << "found directory: " << fileName << std::endl;
+			//std::cout << "in loadTree" << std::endl;
+			file_names.push_back(fileName);
 
-				//std::cout << "in fileName: " << fileName << std::endl;
+			//std::cout << "in fileName: " << fileName << std::endl;
 
-				//now populate the TreeView
-				//Gtk::TreeModel::Row row = *(model->append());
+			//now populate the TreeView
+			//Gtk::TreeModel::Row row = *(model->append());
 
-				char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
+			char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
 
-				strcpy(result, path);
-				strcat(result, "/");
-				strcat(result, fileName.c_str());
+			strcpy(result, path);
+			strcat(result, "/");
+			strcat(result, fileName.c_str());
 
-				//std::cout << "result: " << result << std::endl;
+			//std::cout << "result: " << result << std::endl;
 
-				//dont display the first folder in the result;
-				if (orig_path == path) {
-					//model.clear();
-					//std::cout << "orig path, reset model: " << model
-					//	<< std::endl;
-					Gtk::TreeModel::Row rowb = *(model->append());
-					//std::cout << "new row: " << rowb << std::endl;
-					rowb[columns.name] = fileName;
-					rowb[columns.path] = result;
-					rowb[columns.bank] = -1;
-					rowb[columns.program] = -1;
-					//std::cout << "rowb: " << rowb << std::endl;
-					loadTree(orig_path, result, rowb);
-				} else {
-					Gtk::TreeModel::Row rowb = *(model->append(row.children()));
-					rowb[columns.name] = fileName;
-					rowb[columns.path] = result;
-					rowb[columns.bank] = -1;
-					rowb[columns.program] = -1;
-					//std::cout << "rowb: " << rowb << std::endl;
-
-					//std::cout << "not root path" << std::endl;
-
-					loadTree(orig_path, result, rowb);
-				}
-
+			//dont display the first folder in the result;
+			if (orig_path == path) {
+				//model.clear();
+				//std::cout << "orig path, reset model: " << model
+				//	<< std::endl;
+				Gtk::TreeModel::Row rowb = *(model->append());
+				//std::cout << "new row: " << rowb << std::endl;
+				rowb[columns.name] = fileName;
+				rowb[columns.path] = result;
+				rowb[columns.bank] = -1;
+				rowb[columns.program] = -1;
+				//std::cout << "rowb: " << rowb << std::endl;
+				loadTree(orig_path, result, rowb);
 			} else {
-				char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
-				strcpy(result, path);
-				strcat(result, "/");
-				strcat(result, fileName.c_str());
+				Gtk::TreeModel::Row rowb = *(model->append(row.children()));
+				rowb[columns.name] = fileName;
+				rowb[columns.path] = result;
+				rowb[columns.bank] = -1;
+				rowb[columns.program] = -1;
+				//std::cout << "rowb: " << rowb << std::endl;
 
-				file_names.push_back(fileName);
+				//std::cout << "not root path" << std::endl;
 
-				if (is_soundfont(result)) {
-
-					Gtk::TreeModel::Row rownew;
-					if (orig_path == path) {
-
-						rownew = *(model->append());
-
-					} else {
-
-						rownew = *(model->append(row.children()));
-
-					}
-					rownew[columns.name] = fileName;
-					rownew[columns.path] = result;
-					rownew[columns.bank] = -1;
-					rownew[columns.program] = -1;
-
-				}
+				loadTree(orig_path, result, rowb);
 			}
 
+		} else {
+			char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
+			strcpy(result, path);
+			strcat(result, "/");
+			strcat(result, fileName.c_str());
+
+			file_names.push_back(fileName);
+
+			if (is_soundfont(result)) {
+
+				Gtk::TreeModel::Row rownew;
+				if (orig_path == path) {
+
+					rownew = *(model->append());
+
+				} else {
+
+					rownew = *(model->append(row.children()));
+
+				}
+				rownew[columns.name] = fileName;
+				rownew[columns.path] = result;
+				rownew[columns.bank] = -1;
+				rownew[columns.program] = -1;
+
+			}
 		}
 
-		std::sort(file_names.begin(), file_names.end());
-	//} catch (int e) {
-	//	std::cout << "An exception occurred. Exception Nr. " << e << std::endl;
-	//}
+	}
+
+	//TODO: fix the sorting.
+	std::sort(file_names.begin(), file_names.end());
+
 }
 
 bool EmapContainer::is_soundfont(const char * filename) {
@@ -476,11 +484,6 @@ void EmapContainer::on_selection_changed() {
 
 			std::map<Glib::ustring, int>::iterator it = presets.begin();
 
-			//for (it = presets.begin(); it != presets.end(); ++it) {
-			//	std::cout << "presets before: " << it->first << " => "
-			//			<< it->second << std::endl;
-			//}
-
 			//conditionally add the presets to the tree
 
 			//std::cout << "it->second: " << it->second << std::endl;
@@ -504,11 +507,7 @@ void EmapContainer::on_selection_changed() {
 
 				}
 				presets[sfname] = 1;
-				//presets.insert(std::pair<Glib::ustring, int>(sfname, 1));
-				//for (it = presets.begin(); it != presets.end(); ++it) {
-				//	std::cout << "presets after: " << it->first << " => "
-				//			<< it->second << std::endl;
-				//}
+
 			}
 
 		}
