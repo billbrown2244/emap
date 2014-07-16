@@ -273,10 +273,6 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_full_app) {
 				G_CALLBACK(&EmapContainer::on_button_collapse),
 				GTK_TREE_VIEW(treeview2));
 
-		//g_signal_connect(treeview2, "cursor-changed",
-		//		G_CALLBACK(&EmapContainer::on_key_press_or_release_event2),
-		//		GTK_TREE_VIEW(treeview2));
-
 		GtkTreeSelection* selection = gtk_tree_view_get_selection(
 				GTK_TREE_VIEW(treeview2));
 
