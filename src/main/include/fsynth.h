@@ -22,7 +22,9 @@
 #ifndef FLUIDSYNTH_H_
 #define FLUIDSYNTH_H_
 
+#include "lv2.h"
 #include <fluidsynth.h>
+
 
 class FSynth {
 
