@@ -48,9 +48,9 @@
 //http://hammered999.wordpress.com/
 //gave info for how to redraw the treeView
 
-EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_full_app) {
+EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
-	if (is_full_app) {
+	if (!is_lv2) {
 
 		std::cout << "before top emap window:" << std::endl;
 
@@ -1184,8 +1184,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		return NULL;
 	}
 
-	FSynth fsynth;
-	EmapContainer* emap = new EmapContainer(fsynth.get_synth(), false);
+	FSynth fsynth(true);
+	EmapContainer* emap = new EmapContainer(fsynth.get_synth(), true);
 
 	std::cout << "Allocated SourceGUI!" << std::endl;
 

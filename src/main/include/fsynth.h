@@ -30,7 +30,7 @@ class FSynth {
 
 public:
 
-	FSynth();
+	FSynth(bool is_lv2);
 	~FSynth();
 
 	fluid_synth_t* get_synth();

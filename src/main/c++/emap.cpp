@@ -35,9 +35,9 @@ int main(int argc, char *argv[]) {
 	//try {
 
 		//Connect front end and synth
-		FSynth fsynth;
+		FSynth fsynth(false);
 		std::cout << "Start EMAP: " << std::endl;
-		EmapContainer emap(fsynth.get_synth(),true);
+		EmapContainer emap(fsynth.get_synth(),false);
 
 		//Shows the window and returns when it is closed.
 		return app->run(emap);

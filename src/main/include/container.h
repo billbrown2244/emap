@@ -29,7 +29,7 @@
 
 class EmapContainer: public Gtk::Window {
 public:
-	EmapContainer(fluid_synth_t* synth, bool is_full_app);
+	EmapContainer(fluid_synth_t* synth, bool is_lv2);
 	~EmapContainer();
 
 	// public lv2 stuff

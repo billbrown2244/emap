@@ -28,7 +28,9 @@
 
 #include "fsynth.h"
 
-FSynth::FSynth() {
+FSynth::FSynth(bool is_lv2) {
+
+	if(!is_lv2) {
 
 	std::cout << "making EMAP synth (fluidsynth wrapper)" << std::endl;
 
@@ -49,7 +51,7 @@ FSynth::FSynth() {
 	adriver = new_fluid_audio_driver(settings, synth);
 
 	std::cout << "made FSynth audio driver" << std::endl;
-
+	}
 }
 
 FSynth::~FSynth() {
@@ -127,7 +129,7 @@ static LV2_Handle instantiate(const LV2_Descriptor* descriptor, double rate,
 		const char* bundle_path, const LV2_Feature* const * features) {
 	std::cout << "instantiate EMAP lv2" << std::endl;
 	//Synth* synth = (Synth*) malloc(sizeof(Synth));
-	fsynth = new FSynth;
+	fsynth = new FSynth(true);
 	return (LV2_Handle) fsynth;
 }
 
