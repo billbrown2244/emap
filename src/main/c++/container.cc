@@ -1031,6 +1031,20 @@ void EmapContainer::on_selection_changed(GtkTreeView* treeview) {
 }
 
 //lv2 stuff
+typedef struct {
+        LV2_Atom_Forge forge;
+
+        LV2_URID_Map* map;
+        SamplerURIs   uris;
+
+        LV2UI_Write_Function write;
+        LV2UI_Controller     controller;
+
+        EmapContainer* emap;
+
+} EContainer;
+
+
 static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		const char * plugin_uri, const char * bundle_path,
 		LV2UI_Write_Function write_function, LV2UI_Controller controller,
@@ -1043,8 +1057,8 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		return NULL;
 	}
 
-	FSynth fsynth(true,0);
-	EmapContainer* emap = new EmapContainer(fsynth.get_synth(), true);
+	//FSynth fsynth(true,0);
+	EmapContainer* emap = new EmapContainer(NULL, true);
 
 	std::cout << "Allocated SourceGUI!" << std::endl;
 

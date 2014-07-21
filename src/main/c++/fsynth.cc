@@ -27,10 +27,6 @@
 #include <stdlib.h>
 
 #include "fsynth.h"
-#include "atom.h"
-#include "util.h"
-#include "midi.h"
-#include "urid.h"
 
 FSynth::FSynth(bool is_lv2, double sample_rate) {
 
@@ -216,38 +212,31 @@ static void run(LV2_Handle instance, uint32_t n_samples) {
 		//std::cout << "synth->uris.midi_MidiEvent: "
 		//		<< synth->uris.midi_MidiEvent << std::endl;
 		if (ev->body.type == synth->uris.midi_MidiEvent) {
-			uint8_t* msg = (uint8_t*) (ev + 1);
-
-			std::cout << "msg: " << msg << std::endl;
-
-			//std::cout << "fsynth: " << fsynth << std::endl;
+			//uint8_t* msg = (uint8_t*) (ev + 1);
+			const uint8_t* msg = (uint8_t*) LV2_ATOM_BODY_CONST(&ev->body);
 
 			int channel = (msg[0] & 0x0F);
 			int key = msg[1];
 			int velocity = msg[2];
 			int control = msg[1];
-			int value = msg[2];
+			int control_value = msg[2];
 			int program = msg[1];
 			int pressure_val = msg[1];
 			int pitch = msg[1] + (msg[2] << 7);
 
-			std::cout << "channel: " << (msg[0] & 0x0F) << std::endl;
-			//std::cout << "key: " << key << std::endl;
-			//std::cout << "velocity: " << velocity << std::endl;
-			//std::cout << "control: " << control << std::endl;
-			//std::cout << "value: " << value << std::endl;
-			//std::cout << "program: " << program << std::endl;
-			//std::cout << "pressure_val: " << pressure_val << std::endl;
-			//std::cout << "pitch: " << pitch << std::endl;
+			//std::cout << "channel: " << (msg[0] & 0x0F) << std::endl;
 
-			switch ((msg[0] & 0x0F)) {//lv2_midi_message_type(msg)) {		//event_type) {		//
+			switch (lv2_midi_message_type(msg)) {
 			case NOTE_ON: {
 				std::cout << "NOTE_ON: " << std::endl;
+				std::cout << "key: " << key << std::endl;
+				std::cout << "velocity: " << velocity << std::endl;
 				fluid_synth_noteon(fsynth, channel, key, velocity);
 				break;
 			}
 			case NOTE_OFF: {
 				std::cout << "NOTE_OFF: " << std::endl;
+				std::cout << "key: " << key << std::endl;
 				fluid_synth_noteoff(fsynth, channel, key);
 				break;
 			}
@@ -257,26 +246,31 @@ static void run(LV2_Handle instance, uint32_t n_samples) {
 			}
 			case CONTROL_CHANGE: {
 				std::cout << "CONTROL_CHANGE: " << std::endl;
-				fluid_synth_cc(fsynth, channel, control, value);
+				std::cout << "control: " << control << std::endl;
+				std::cout << "control_value: " << control_value << std::endl;
+				fluid_synth_cc(fsynth, channel, control, control_value);
 				break;
 			}
 			case PROGRAM_CHANGE: {
 				std::cout << "PROGRAM_CHANGE: " << std::endl;
+				std::cout << "program: " << program << std::endl;
 				fluid_synth_program_change(fsynth, channel, program);
 				break;
 			}
 			case CHANNEL_PRESSURE: {
 				std::cout << "CHANNEL_PRESSURE: " << std::endl;
+				std::cout << "pressure_val: " << pressure_val << std::endl;
 				fluid_synth_channel_pressure(fsynth, channel, pressure_val);
 				break;
 			}
 			case PITCH_BEND: {
 				std::cout << "PITCH_BEND: " << std::endl;
+				std::cout << "pitch: " << pitch << std::endl;
 				fluid_synth_pitch_bend(fsynth, channel, pitch);
 				break;
 			}
 			default: {
-				std::cout << "no event found: " << std::endl;
+				//std::cout << "no midi event: " << std::endl;
 				break;
 			}
 			}
@@ -295,10 +289,6 @@ static void cleanup(LV2_Handle instance) {
 	std::cout << "cleanup EMAP lv2" << std::endl;
 	free(instance);
 }
-
-//const void* FSynth::extension_data(const char* uri) {
-//  return NULL;
-//}
 
 static LV2_Descriptor descriptors[] = { { EMAP_URI, instantiate, connect_port,
 		activate, run, deactivate, cleanup } };		//, extension_data } };

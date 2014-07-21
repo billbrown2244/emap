@@ -124,7 +124,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<shared.lib.path>/usr/lib64</shared.lib.path>
+		<shared.lib.path>/usr/lib</shared.lib.path>
 		<shared.include.path>/usr/include</shared.include.path>
 		<atklib>atk-1.0</atklib>
 		<atkmmlib>atkmm-1.6</atkmmlib>

@@ -65,7 +65,7 @@
         a lv2:InputPort ,
         		atom:AtomPort ;
         atom:bufferType atom:Sequence ;
-    	atom:supports midi:MidiEvent; #, patch:Message ;		
+    	atom:supports midi:MidiEvent;	
         lv2:designation lv2:control ;
         lv2:index 2 ;
         lv2:symbol "midi_in" ;
@@ -75,9 +75,11 @@
 		a lv2:OutputPort ,
         	atom:AtomPort ;
         atom:bufferType atom:Sequence ;
+        atom:supports patch:Message ;
+		lv2:designation lv2:control ;
 		lv2:index 3 ;
 		lv2:symbol "notify" ;
-		lv2:name "notify" ;
+		lv2:name "Notify" ;
     ].
    
     

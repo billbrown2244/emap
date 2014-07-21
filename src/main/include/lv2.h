@@ -2,15 +2,16 @@
 #define LV2_H_
 
 #include "lv2-c++-tools/lv2.h"
-#include "atom.h"
-#include "util.h"
-#include "midi.h"
-#include "urid.h"
+#include "/usr/lib/lv2/atom.lv2/atom.h"
+#include "/usr/lib/lv2/atom.lv2/util.h"
+#include "/usr/lib/lv2/atom.lv2/forge.h"
+#include "/usr/lib/lv2/midi.lv2/midi.h"
+#include "/usr/lib/lv2/urid.lv2/urid.h"
 #include <lv2-c++-tools/lv2gui.hpp>
 
 #define EMAP_URI "http://www.colorfulsoftware.com/emap/lv2"
 #define EMAP_UI_URI "http://www.colorfulsoftware.com/emap/lv2ui"
-#define LV2_MIDI__MidiEvent "http://lv2plug.in/ns/ext/midi#MidiEvent"
+//#define LV2_MIDI__MidiEvent "http://lv2plug.in/ns/ext/midi#MidiEvent"
 
 // MIDI opcodes
 #define NOTE_OFF                0x80
