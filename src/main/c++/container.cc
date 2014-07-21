@@ -340,188 +340,6 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 	}
 }
 
-/*
- EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_full_app) {
-
- gtk_init(0, NULL);
-
- emap = Glib::wrap(GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL)));
-
- std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
-
- gtk_window_set_title(GTK_WINDOW(emap->gobj()), "EMAP - Easy Midi Audio Production");
-
- std::cout << "set title" << std::endl;
-
- gtk_window_set_default_size(GTK_WINDOW(emap->gobj()), 400, 400);
-
- synth = synth_new;
-
- container = Glib::wrap(gtk_table_new(2, 0, false));
- std::cout << "made container" << std::endl;
-
- scrolled = Glib::wrap(gtk_scrolled_window_new(NULL, NULL)); //hadj, vadj);
- gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled->gobj()),
- GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
- std::cout << "made scrolled " << scrolled << std::endl;
-
- //path_container = gtk_grid_new();
- path_container = Glib::wrap(gtk_table_new(1, 4, true));
- std::cout << "made path_container" << std::endl;
-
- treeview = Glib::wrap((GtkTreeView*) gtk_tree_view_new());
- std::cout << "made treeview " << treeview << std::endl;
-
- set_root_folder_button = Glib::wrap(
- gtk_button_new_with_label("Set Root Folder"));
- std::cout << "made set_root_folder_button" << std::endl;
-
- if (is_full_app) {
- quit_button = Glib::wrap(gtk_button_new_with_label("Quit"));
- std::cout << "made quit_button" << std::endl;
- }
-
- expand_all_button = Glib::wrap(gtk_button_new_with_label("Expand All"));
- std::cout << "made expand_all_button" << std::endl;
-
- collapse_all_button = Glib::wrap(gtk_button_new_with_label("Collapse All"));
- std::cout << "made collapse_all_button" << std::endl;
-
- std::cout << "created EMAP base components." << std::endl;
-
- //setup the TreeView
- model = Glib::wrap(
- gtk_tree_store_new(N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING,
- G_TYPE_INT, G_TYPE_INT));
- gtk_tree_view_set_model((dynamic_cast<Gtk::TreeView*>(treeview))->gobj(),
- (GtkTreeModel*) model->gobj());
-
- GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
- GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes("",
- renderer, "text", TEXT_COLUMN, NULL);
- //gtk_tree_view_column_pack_start(column, renderer, true);
- gtk_tree_view_append_column(
- (dynamic_cast<Gtk::TreeView*>(treeview))->gobj(), column);
-
- std::cout << "made base tree model." << std::endl;
-
- //g_signal_connect(G_OBJECT((dynamic_cast<Gtk::TreeView*>(treeview))),
- //		"move-cursor",
- //		G_CALLBACK(&EmapContainer::on_key_press_or_release_event),
- //		(dynamic_cast<Gtk::TreeView*>(treeview)));
-
- //g_signal_connect(G_OBJECT((dynamic_cast<Gtk::TreeView*>(treeview))),
- //		"expand-collapse-cursor-row",
- //		G_CALLBACK(&EmapContainer::on_key_press_or_release_event2),
- //		(dynamic_cast<Gtk::TreeView*>(treeview)));
-
- std::cout << "connected tree cursor toggle signals." << std::endl;
-
- //treeview->signal_key_press_event().connect(
- //			sigc::mem_fun(this, &EmapContainer::on_key_press_or_release_event));
- /********************
- treeview->connect(sigc::mem_fun(this, &EmapContainer::on_key_press_or_release_event));
- treeview->signal_key_release_event().connect(
- sigc::mem_fun(this, &EmapContainer::on_key_press_or_release_event));
- treeview->add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
- ********************* /
-
- //connect the signals
- g_signal_connect(set_root_folder_button->gobj(), "clicked",
- G_CALLBACK(&EmapContainer::on_button_clicked), this);
-
- if (is_full_app) {
- g_signal_connect(quit_button->gobj(), "clicked",
- G_CALLBACK(&EmapContainer::on_button_quit), NULL);
- }
-
- g_signal_connect(expand_all_button->gobj(), "clicked",
- G_CALLBACK(&EmapContainer::on_button_expand), treeview->gobj());
-
- g_signal_connect(collapse_all_button->gobj(), "clicked",
- G_CALLBACK(&EmapContainer::on_button_collapse), treeview->gobj());
-
- g_signal_connect(treeview->gobj(), "cursor-changed",
- G_CALLBACK(&EmapContainer::on_selection_changed), treeview->gobj());
-
- //************DO THIS ****************
- //Connect signal:signal_row_activated
- //Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
- //		treeview->get_selection();
-
- /********************START HERE AND ABOVE SECTION LIKE ******
- refTreeSelection->signal_changed().connect(
- sigc::mem_fun(*this, &EmapContainer::on_selection_changed));
- */
-//add the path_* widgets to the path_container
-/*
- gtk_grid_attach(GTK_GRID(path_container), set_root_folder_button, 0, 0, 1, 1);
- gtk_grid_attach(GTK_GRID(path_container), expand_all_button, 1, 0, 1, 1);
- gtk_grid_attach(GTK_GRID(path_container), collapse_all_button, 2, 0, 1, 1);
- gtk_grid_attach(GTK_GRID(path_container), quit_button, 3, 0, 1, 1);
- * /
-
- gtk_table_attach(GTK_TABLE(path_container->gobj()), set_root_folder_button->gobj(),
- 0, 1, 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK,
- 0, 0);
- gtk_table_attach(GTK_TABLE(path_container->gobj()), expand_all_button->gobj(), 1, 2,
- 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
- gtk_table_attach(GTK_TABLE(path_container->gobj()), collapse_all_button->gobj(), 2,
- 3, 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0,
- 0);
- if (is_full_app) {
- gtk_table_attach(GTK_TABLE(path_container->gobj()), quit_button->gobj(), 3, 4,
- 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0,
- 0);
- }
- //Setup the ScrolledWindow and add the TreeView in it
- gtk_container_add((GtkContainer*) scrolled->gobj(), (GtkWidget*) treeview->gobj());
-
- gtk_table_attach(GTK_TABLE(container->gobj()), path_container->gobj(), 0, 1, 0, 1,
- (GtkAttachOptions)(GTK_FILL | GTK_EXPAND), GTK_SHRINK, 0, 0);
-
- gtk_table_attach_defaults(GTK_TABLE(container->gobj()), scrolled->gobj(), 0, 1, 1,
- 2);	//0, 2, 1, 2);
-
- gtk_container_add(GTK_CONTAINER(emap->gobj()), container->gobj());
-
- //set up the root folder
- struct passwd *pw = getpwuid(getuid());
- home_dir = pw->pw_dir;
- root_folder = home_dir;
-
- std::fstream fbuf;
- config_file = home_dir + "/.config/emap/rootdir.txt";
- std::cout << "config file:" << config_file << std::endl;
-
- fbuf.open(config_file.c_str(),
- std::ios::in | std::ios::out | std::ios::binary);
-
- //set the root folder
- if (!fbuf.is_open()) {
- std::cout
- << "config file doesn't exist. create config file with default root folder: "
- << home_dir << std::endl;
- set_root_folder(home_dir.c_str());
- } else {
- std::string line;
- std::getline(fbuf, line);
- root_folder = line;
- std::cout << "config file exists.  set root_folder to: " << root_folder
- << std::endl;
- }
-
- Gtk::TreeModel::Row row;
-
- //populate the tree
- std::cout << "tree root folder: " << root_folder << std::endl;
-
- loadTree(root_folder.c_str(), root_folder.c_str(), row);
-
- gtk_widget_show_all(GTK_WIDGET(emap->gobj()));
- }
- */
-
 EmapContainer::~EmapContainer() {
 	delete treeview;
 	delete path_container;
@@ -537,6 +355,8 @@ bool EmapContainer::on_key_press_or_release_event2(GtkTreeView *tree_view,
 
 	g_signal_connect(selection, "changed",
 			G_CALLBACK(&EmapContainer::on_selection_changedLv2), selection);
+
+	return false;
 }
 
 void EmapContainer::on_selection_changedLv2(GtkWidget *widget,
@@ -544,6 +364,8 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget,
 	std::cout << "selection changed " << std::endl;
 
 	GtkTreeIter iter;
+	GtkTreeIter* row;
+	GtkTreeIter* child;
 	GtkTreeModel * model;
 	char* name;
 	char* path;
@@ -553,30 +375,67 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget,
 			&iter)) {
 		std::cout << "got selected " << std::endl;
 
-		gtk_tree_model_get(model, &iter, NAME, &name, -1);
+		gtk_tree_model_get(model, &iter, NAME, &name, PATH, &path, BANK, &bank,
+				PROGRAM, &program, -1);
+
 		std::cout << "name: " << name << std::endl;
-		g_free(name);
-
-		gtk_tree_model_get(model, &iter, PATH, &path, -1);
 		std::cout << "path: " << path << std::endl;
-		g_free(path);
+		std::cout << "bank: " << bank << std::endl;
 
-		//gtk_tree_model_get(model, &iter, BANK, bank,-1);
-		// std::cout << "bank: " << bank << std::endl;
-		//g_free(bank);
+		std::cout << "program: " << program << std::endl;
 
-		//  gtk_tree_model_get(model, &iter, PROGRAM, program,-1);
-		//  std::cout << "program: " << program << std::endl;
-		// g_free(program);
+		if (is_soundfont(path)) {
+			std::cout << "name: " << name << " is a soundfont lets open it."
+					<< std::endl;
 
-		// g_free(iter);
-		//  std::cout << "freed iter: " << std::endl;
+			//get synth from atom forge
+			fluid_synth_sfload(synth, path,1);
 
-		// std::cout << "bank: " << bank << std::endl;
-		// std::cout << "program: " << program << std::endl;
+			fluid_sfont_t* soundfont = fluid_synth_get_sfont(synth, 0);
 
-		//g_free(bank);
-		// g_free(program);
+			if (bank == -1 && program == -1) {
+				std::cout << "selection: " << name
+						<< ", load default bank and program." << std::endl;
+			}
+
+			//std::cout << "soundfont: " << soundfont << std::endl;
+
+			Glib::ustring sfname = Glib::ustring(
+					soundfont->get_name(soundfont));
+
+			//std::cout << "soundfont name: " << sfname << std::endl;
+
+			soundfont->iteration_start(soundfont);
+
+			std::map<Glib::ustring, int>::iterator it = presets.begin();
+
+			//conditionally add the presets to the tree
+
+			//std::cout << "it->second: " << it->second << std::endl;
+			if (presets.find(sfname) == presets.end()) {
+				//if(it != NULL) {
+				//	std::cout << "build out presets for this soundfont"
+				//			<< std::endl;
+				fluid_preset_t preset;
+				while (soundfont->iteration_next(soundfont, &preset)) {
+					int iBank = preset.get_banknum(&preset);
+					int iProg = preset.get_num(&preset);
+					char* preset_name = preset.get_name(&preset);
+
+					gtk_tree_store_append(GTK_TREE_STORE(model), &iter, row); //new
+					gtk_tree_store_set(GTK_TREE_STORE(model), child, NAME, preset_name,
+							PATH, preset_name, BANK, iBank, PROGRAM, iProg, -1);
+
+				}
+				presets[sfname] = 1;
+
+			}
+
+		} else {
+			std::cout << "name: " << name << " is just a folder.  do nothing. "
+					<< std::endl;
+		}
+
 	} else {
 
 		std::cout << "didn't get selected " << std::endl;
@@ -1184,7 +1043,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		return NULL;
 	}
 
-	FSynth fsynth(true);
+	FSynth fsynth(true,0);
 	EmapContainer* emap = new EmapContainer(fsynth.get_synth(), true);
 
 	std::cout << "Allocated SourceGUI!" << std::endl;
@@ -1218,7 +1077,7 @@ static void cleanup(LV2UI_Handle ui) {
 
 static void port_event(LV2UI_Handle ui, uint32_t port_index,
 		uint32_t buffer_size, uint32_t format, const void * buffer) {
-	EmapContainer *self = (EmapContainer *) ui;
+	//EmapContainer *self = (EmapContainer *) ui;
 
 	std::cout << "Port event on index " << port_index << "  Format is "
 			<< format << std::endl;

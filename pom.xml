@@ -39,7 +39,9 @@
 							<systemIncludePath>${shared.include.path}/${atkmmlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${atklib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${lv2devlib}</systemIncludePath>
-							
+							<systemIncludePath>${shared.lib.path}/${atom}</systemIncludePath>
+							<systemIncludePath>${shared.lib.path}/${midi}</systemIncludePath>
+							<systemIncludePath>${shared.lib.path}/${urid}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${glibmmlib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${gtkmmlib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${gliblib}/include</systemIncludePath>
@@ -122,7 +124,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<shared.lib.path>/usr/lib</shared.lib.path>
+		<shared.lib.path>/usr/lib64</shared.lib.path>
 		<shared.include.path>/usr/include</shared.include.path>
 		<atklib>atk-1.0</atklib>
 		<atkmmlib>atkmm-1.6</atkmmlib>
@@ -147,7 +149,9 @@
 		<lv2devlib>lv2-c++-tools</lv2devlib>
 		<lv2lib>lv2/ui.lv2</lv2lib>
 		<gtklibshared>gtk-3</gtklibshared>
-		
+		<atom>lv2/atom.lv2</atom>
+		<midi>lv2/midi.lv2</midi>
+		<urid>lv2/urid.lv2</urid>
 		<binaryType>executable</binaryType>
 	</properties>
 

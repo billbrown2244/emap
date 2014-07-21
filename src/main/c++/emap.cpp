@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 	//try {
 
 		//Connect front end and synth
-		FSynth fsynth(false);
+		FSynth fsynth(false,0);
 		std::cout << "Start EMAP: " << std::endl;
 		EmapContainer emap(fsynth.get_synth(),false);
 
