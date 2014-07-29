@@ -1,6 +1,8 @@
 @prefix lv2:  <http://lv2plug.in/ns/lv2core#>.
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-  <http://www.colorfulsoftware.com/emap/lv2>
+@prefix ui:   <http://lv2plug.in/ns/extensions/ui#> .
+
+<http://www.colorfulsoftware.com/emap/lv2>
   a lv2:Plugin;
   lv2:binary <libemap-0.0.2-SNAPSHOT.so>;
   rdfs:seeAlso <emap.ttl>.

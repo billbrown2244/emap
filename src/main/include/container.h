@@ -33,18 +33,24 @@ public:
 	~EmapContainer();
 
 	// public lv2 stuff
+	const LV2_Atom_Sequence* control;
+	LV2_Atom_Sequence* notify;
+	LV2_Atom_Forge forge;
+	LV2_Atom_Forge_Frame frame;
+
+	LV2_URID_Map* map;
+	EMAPUris uris;
+
+	LV2UI_Write_Function write;
 	LV2UI_Controller controller;
-
-	LV2UI_Write_Function write_function;
-
-	LV2UI_Handle *handle;
 
 	static LV2UI_Descriptor descriptors[];
 
 	GtkWindow *emap;
 
-	//Gtk::Widget *container, *path_container, *scrolled;
-	//, *set_root_folder_button,*quit_button, *expand_all_button, *collapse_all_button;//, *treeview;
+	const char* name;
+	const char* path;
+	int bank, program;
 
 	GtkTable * container;
 	Gtk::Table* path_container;
@@ -52,8 +58,10 @@ public:
 	Gtk::ScrolledWindow *scrolled;
 
 	GtkTreeView *treeview;
+	GtkTreeSelection* selection;
 
-	Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button, *collapse_all_button;
+	Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button,
+			*collapse_all_button;
 
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;
@@ -63,7 +71,7 @@ public:
 	std::string root_folder, home_dir, config_file;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
-	std::map<Glib::ustring, int> presets; //map for holding build out presets.
+	std::map<char*, int> presets; //map for holding build out presets.
 
 	struct sortstruct {
 		// sortstruct needs to know its containing object
@@ -93,7 +101,7 @@ public:
 	void on_button_collapse(GtkTreeView* treeview);
 	bool on_key_press_or_release_event(GdkEventKey* event);
 	bool on_key_press_or_release_event2(GtkTreeView *tree_view,
-	            gpointer     user_data);
+			gpointer user_data);
 	void on_selection_changed(GtkTreeView* treeview);
 	void on_selection_changedLv2(GtkWidget *widget, gpointer treeview);
 	bool is_soundfont(const char * filename);
@@ -103,8 +111,8 @@ public:
 			GtkTreeStore* model);
 	void set_root_folder(const char* root_folder);
 	void set_root_folderLv2(EmapContainer* emap);
-
-
+	void send_ui_state(EmapContainer* emap);
+	void send_ui_disable(EmapContainer* emap);
 
 protected:
 

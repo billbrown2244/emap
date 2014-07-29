@@ -44,6 +44,7 @@
 #include <fluidsynth.h>
 #include <misc.h>
 #include <iostream>
+#include "lv2.h"
 
 //http://hammered999.wordpress.com/
 //gave info for how to redraw the treeView
@@ -251,7 +252,6 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 				G_TYPE_INT);
 		gtk_tree_view_set_model(GTK_TREE_VIEW(treeview2),
 				(GtkTreeModel*) modelc);
-		model = Glib::wrap(modelc);
 
 		GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
 		GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes("",
@@ -273,11 +273,10 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 				G_CALLBACK(&EmapContainer::on_button_collapse),
 				GTK_TREE_VIEW(treeview2));
 
-		GtkTreeSelection* selection = gtk_tree_view_get_selection(
-				GTK_TREE_VIEW(treeview2));
+		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview2));
 
 		g_signal_connect(selection, "changed",
-				G_CALLBACK(&EmapContainer::on_selection_changedLv2), selection);
+				G_CALLBACK(&EmapContainer::on_selection_changedLv2), this);
 
 		std::cout << "connected tree and button signals." << std::endl;
 
@@ -347,32 +346,22 @@ EmapContainer::~EmapContainer() {
 	delete container;
 }
 
-bool EmapContainer::on_key_press_or_release_event2(GtkTreeView *tree_view,
-		gpointer treeview) {
-	std::cout << "cursor changed " << std::endl;
-	GtkTreeSelection* selection = gtk_tree_view_get_selection(
-			GTK_TREE_VIEW(treeview));
-
-	g_signal_connect(selection, "changed",
-			G_CALLBACK(&EmapContainer::on_selection_changedLv2), selection);
-
-	return false;
-}
-
-void EmapContainer::on_selection_changedLv2(GtkWidget *widget,
-		gpointer selection) {
+void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 	std::cout << "selection changed " << std::endl;
+
+	EmapContainer* emap = (EmapContainer*) data;
+
+	GtkTreeSelection* selection = emap->selection;
 
 	GtkTreeIter iter;
 	GtkTreeIter* row;
-	GtkTreeIter* child;
+	GtkTreeIter child;
 	GtkTreeModel * model;
 	char* name;
 	char* path;
 	int bank, program;
 
-	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(selection), &model,
-			&iter)) {
+	if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
 		std::cout << "got selected " << std::endl;
 
 		gtk_tree_model_get(model, &iter, NAME, &name, PATH, &path, BANK, &bank,
@@ -381,54 +370,115 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget,
 		std::cout << "name: " << name << std::endl;
 		std::cout << "path: " << path << std::endl;
 		std::cout << "bank: " << bank << std::endl;
-
 		std::cout << "program: " << program << std::endl;
 
 		if (is_soundfont(path)) {
 			std::cout << "name: " << name << " is a soundfont lets open it."
 					<< std::endl;
 
-			//get synth from atom forge
-			fluid_synth_sfload(synth, path,1);
+			emap->name = name;
+			emap->path = path;
+			emap->bank = bank;
+			emap->program = program;
 
-			fluid_sfont_t* soundfont = fluid_synth_get_sfont(synth, 0);
+			//if this is an actual patch, send it to the
+			//backend to load.
+			if (bank != -1 && program != -1) {
+				std::cout << "send ui state to backend. " << std::endl;
+				send_ui_state(emap);
 
-			if (bank == -1 && program == -1) {
-				std::cout << "selection: " << name
-						<< ", load default bank and program." << std::endl;
-			}
+			} else { //otherwise lets build out the patch leaves
 
-			//std::cout << "soundfont: " << soundfont << std::endl;
+				std::cout
+						<< "just open the soundfont but don't load any default patch. "
+						<< std::endl;
 
-			Glib::ustring sfname = Glib::ustring(
-					soundfont->get_name(soundfont));
+				fluid_settings_t* settings = new_fluid_settings();
+				std::cout << "got fluid_settings_t " << std::endl;
 
-			//std::cout << "soundfont name: " << sfname << std::endl;
+				fluid_synth_t* synth = new_fluid_synth(settings);
+				std::cout << "got fluid_synth_t. " << std::endl;
 
-			soundfont->iteration_start(soundfont);
+				fluid_synth_sfload(synth, path, 1);
+				std::cout << "fluid_synth_sfload. " << std::endl;
 
-			std::map<Glib::ustring, int>::iterator it = presets.begin();
+				fluid_sfont_t* soundfont = fluid_synth_get_sfont(synth, 0);
+				std::cout << "fluid_sfont_t. " << std::endl;
 
-			//conditionally add the presets to the tree
+				char* sfname = soundfont->get_name(soundfont);
 
-			//std::cout << "it->second: " << it->second << std::endl;
-			if (presets.find(sfname) == presets.end()) {
-				//if(it != NULL) {
-				//	std::cout << "build out presets for this soundfont"
-				//			<< std::endl;
-				fluid_preset_t preset;
-				while (soundfont->iteration_next(soundfont, &preset)) {
-					int iBank = preset.get_banknum(&preset);
-					int iProg = preset.get_num(&preset);
-					char* preset_name = preset.get_name(&preset);
+				std::cout << "sfname: " << sfname << std::endl;
 
-					gtk_tree_store_append(GTK_TREE_STORE(model), &iter, row); //new
-					gtk_tree_store_set(GTK_TREE_STORE(model), child, NAME, preset_name,
-							PATH, preset_name, BANK, iBank, PROGRAM, iProg, -1);
+				soundfont->iteration_start(soundfont);
 
+				std::cout << "started iteration " << std::endl;
+
+				std::cout << "NULL? " << emap->presets.find(name)->second
+						<< std::endl;
+
+				std::map<char*, int>::iterator f = emap->presets.find(name);
+
+				std::cout << "presets.find(name): " << std::endl;
+
+				std::map<char*, int>::iterator e = emap->presets.end();
+
+				//conditionally add the presets to the tree
+
+				std::cout << "presets.end(): " << std::endl;
+
+				if (e == f) {
+
+					std::cout << "presets.find(name) == presets.end()"
+							<< std::endl;
+
+					fluid_preset_t preset;
+					while (soundfont->iteration_next(soundfont, &preset)) {
+						std::cout << "soundfont->iteration_next: " << std::endl;
+						int iBank = preset.get_banknum(&preset);
+						int iProg = preset.get_num(&preset);
+						char* preset_name = preset.get_name(&preset);
+
+						std::cout << "iBank: " << iBank << std::endl;
+
+						std::cout << "iProg: " << iProg << std::endl;
+
+						std::cout << "preset_name: " << preset_name
+								<< std::endl;
+
+						std::cout << "emap->modelc: " << emap->modelc
+								<< std::endl;
+
+						std::cout << "iter: " << &iter << std::endl;
+
+						std::cout << "row: " << row << std::endl;
+
+						//gtk_tree_store_append(emap->modelc, &child, NULL); //new
+
+
+
+						GtkTreeIter child2;
+						GtkTreeIter * row2;
+
+						gtk_tree_store_append(emap->modelc, &child2, &iter); //new
+						std::cout << "appended new row." << std::endl;
+						gtk_tree_store_set(emap->modelc, &child2,
+								NAME, preset_name,
+								PATH, preset_name,
+								BANK, iBank,
+								PROGRAM, iProg, -1);
+						std::cout << "appended new row2." << std::endl;
+
+					}
+					emap->presets[sfname] = 1;
+
+				} else {
+					std::cout << "(presets.find(name) == presets.end()) false"
+							<< std::endl;
 				}
-				presets[sfname] = 1;
 
+				//free the memory
+				delete_fluid_synth(synth);
+				delete_fluid_settings(settings);
 			}
 
 		} else {
@@ -733,7 +783,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 		if (file_info->get_file_type() == Gio::FILE_TYPE_DIRECTORY) {
 
-			std::cout << "found directory." << std::endl;
+			//std::cout << "found directory." << std::endl;
 
 			file_names.push_back(fileName);
 			//std::cout << "push back." << std::endl;
@@ -744,19 +794,19 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 			strcat(result, "/");
 			strcat(result, fileName.c_str());
 
-			std::cout << "result: " << result << std::endl;
+			//std::cout << "result: " << result << std::endl;
 
 			//dont display the first folder in the result;
 			if (strcmp(orig_path, path) == 0) {
 
-				std::cout << "same path" << std::endl;
+				//std::cout << "same path" << std::endl;
 
 				gtk_tree_store_append(model, &child, NULL);	//new row
 
 				std::cout << "created new row." << std::endl;
 
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
-						result, BANK, 0, PROGRAM, 0, -1);
+						result, BANK, -1, PROGRAM, -1, -1);
 
 				loadTreeLv2(orig_path, result, &child, model);
 
@@ -766,7 +816,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 				gtk_tree_store_append(model, &child, row);	//new
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
-						result, BANK, 0, PROGRAM, 0, -1);
+						result, BANK, -1, PROGRAM, -1, -1);
 
 				loadTreeLv2(orig_path, result, &child, model);
 			}
@@ -794,7 +844,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 				}
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
-						result, BANK, 0, PROGRAM, 0, -1);
+						result, BANK, -1, PROGRAM, -1, -1);
 
 			}
 		}
@@ -982,14 +1032,13 @@ void EmapContainer::on_selection_changed(GtkTreeView* treeview) {
 
 			//std::cout << "soundfont: " << soundfont << std::endl;
 
-			Glib::ustring sfname = Glib::ustring(
-					soundfont->get_name(soundfont));
+			char* sfname = soundfont->get_name(soundfont);
 
 			//std::cout << "soundfont name: " << sfname << std::endl;
 
 			soundfont->iteration_start(soundfont);
 
-			std::map<Glib::ustring, int>::iterator it = presets.begin();
+			std::map<char*, int>::iterator it = presets.begin();
 
 			//conditionally add the presets to the tree
 
@@ -1031,20 +1080,6 @@ void EmapContainer::on_selection_changed(GtkTreeView* treeview) {
 }
 
 //lv2 stuff
-typedef struct {
-        LV2_Atom_Forge forge;
-
-        LV2_URID_Map* map;
-        SamplerURIs   uris;
-
-        LV2UI_Write_Function write;
-        LV2UI_Controller     controller;
-
-        EmapContainer* emap;
-
-} EContainer;
-
-
 static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		const char * plugin_uri, const char * bundle_path,
 		LV2UI_Write_Function write_function, LV2UI_Controller controller,
@@ -1057,19 +1092,39 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		return NULL;
 	}
 
-	//FSynth fsynth(true,0);
+	//allocate an emap instance.
 	EmapContainer* emap = new EmapContainer(NULL, true);
 
-	std::cout << "Allocated SourceGUI!" << std::endl;
-
-	if (emap == NULL)
+	if (emap == NULL) {
+		std::cout << "EMAP error: could not start EMAP." << std::endl;
 		return NULL;
+	}
+
+	// Get host features
+	for (int i = 0; features[i]; ++i) {
+		if (!strcmp(features[i]->URI, LV2_URID__map)) {
+			emap->map = (LV2_URID_Map*) features[i]->data;
+		}
+	}
+
+	if (!emap->map) {
+		std::cout << "EMAP error: Host does not support urid:map" << std::endl;
+		free(emap);
+		return NULL;
+	}
+
+	//initialize the communication port
+	map_emap_uris(emap->map, &emap->uris);
+	lv2_atom_forge_init(&emap->forge, emap->map);
+	emap->write = write_function;
+	emap->controller = controller;
+
+	std::cout << "Allocated SourceGUI!" << std::endl;
 
 	//reparent the container to something the same default size as the standalone app
 	GtkWidget* new_parent = gtk_vbox_new(false, 0);
 	gtk_widget_set_size_request(new_parent, 400, 400);
 	gtk_widget_reparent(GTK_WIDGET(emap->container), new_parent);
-
 	gtk_widget_set_size_request(new_parent, 400, 400);
 
 	std::cout << "Creating UI!" << std::endl;
@@ -1083,19 +1138,164 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 	return (LV2UI_Handle) emap;
 }
 
-static void cleanup(LV2UI_Handle ui) {
-	std::cout << "cleanup EMAP UI lv2" << std::endl;
-	EmapContainer *pluginGui = (EmapContainer *) ui;
-	free(pluginGui);
+/* tell the back end to load the correct soundfont and patch. */
+void EmapContainer::send_ui_state(EmapContainer* data) {
+
+	EmapContainer* emap = (EmapContainer*) data;
+
+	std::cout << "send the UI state to the synth." << std::endl;
+
+	// Use local buffer on the stack to build atom
+	uint8_t obj_buf[1024];
+	lv2_atom_forge_set_buffer(&emap->forge, obj_buf, sizeof(obj_buf));
+
+	std::cout << "allocated buffer." << std::endl;
+
+	LV2_Atom_Forge_Frame frame;
+	LV2_Atom_Forge forge;
+	forge = emap->forge;
+
+	LV2_Atom* obj = (LV2_Atom*) lv2_atom_forge_resource(&emap->forge, &frame, 0,
+			emap->uris.ui_State);
+
+	std::cout << "allocated resource." << std::endl;
+
+	//send the loaded soundfont state back to the synth
+
+	LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_blank(&forge, &frame, 1,
+			emap->uris.ui_State);
+
+	std::cout << "created message." << std::endl;
+
+	std::cout << "name: " << emap->name << std::endl;
+
+	std::cout << "length: " << strlen(emap->name) << std::endl;
+
+	//name
+	lv2_atom_forge_property_head(&emap->forge, emap->uris.ui_name, 0);
+
+	lv2_atom_forge_string(&emap->forge, emap->name, strlen(emap->name));
+
+	std::cout << "name: " << emap->name << std::endl;
+
+	//path
+	lv2_atom_forge_property_head(&emap->forge, emap->uris.ui_path, 0);
+	lv2_atom_forge_string(&emap->forge, emap->path, strlen(emap->path));
+
+	std::cout << "path: " << emap->path << std::endl;
+
+	//bank
+	lv2_atom_forge_property_head(&emap->forge, emap->uris.ui_bank, 0);
+	lv2_atom_forge_int(&emap->forge, emap->bank);
+
+	std::cout << "bank: " << emap->bank << std::endl;
+
+	//program
+	lv2_atom_forge_property_head(&emap->forge, emap->uris.ui_program, 0);
+	lv2_atom_forge_int(&emap->forge, emap->program);
+
+	std::cout << "program: " << emap->program << std::endl;
+
+	// Finish object
+	lv2_atom_forge_pop(&forge, &frame);
+
+	std::cout << "lv2_atom_forge_pop" << std::endl;
+
+	std::cout << "controller: " << emap->controller << std::endl;
+
+	std::cout << "lv2_atom_total_size(msg): " << lv2_atom_total_size(msg)
+			<< std::endl;
+
+	std::cout << "controller: " << msg << std::endl;
+
+	// send the state back to the synth.
+	emap->write(emap->controller, 2, lv2_atom_total_size(msg),
+			emap->uris.atom_eventTransfer, msg);
+
+	std::cout << "wrote message" << std::endl;
 }
 
-static void port_event(LV2UI_Handle ui, uint32_t port_index,
-		uint32_t buffer_size, uint32_t format, const void * buffer) {
-	//EmapContainer *self = (EmapContainer *) ui;
+static void cleanup(LV2UI_Handle ui) {
+	std::cout << "cleanup EMAP UI lv2" << std::endl;
+	EmapContainer *emap = (EmapContainer *) ui;
+	emap->send_ui_disable(emap);
+	free(emap);
+}
 
-	std::cout << "Port event on index " << port_index << "  Format is "
-			<< format << std::endl;
-	return;
+/** Notify backend that UI is closed. */
+void EmapContainer::send_ui_disable(EmapContainer *emap) {
+
+	std::cout << "tell EMAP backend that UI is closing." << std::endl;
+
+	send_ui_state(emap);
+
+	uint8_t obj_buf[64];
+	lv2_atom_forge_set_buffer(&emap->forge, obj_buf, sizeof(obj_buf));
+
+	LV2_Atom_Forge_Frame frame;
+
+	LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_blank(&emap->forge, &frame, 0,
+			emap->uris.ui_Off);
+
+	lv2_atom_forge_pop(&emap->forge, &frame);
+
+	emap->write(emap->controller, 0, lv2_atom_total_size(msg),
+			emap->uris.atom_eventTransfer, msg);
+}
+
+static void port_event(LV2UI_Handle handle, uint32_t port_index,
+		uint32_t buffer_size, uint32_t format, const void* buffer) {
+	EmapContainer* emap = (EmapContainer*) handle;
+	const LV2_Atom* atom = (const LV2_Atom*) buffer;
+
+	/* Check type of data received
+	 *  - format == 0: Control port event (float)
+	 *  - format > 0:  Message (atom)
+	 */
+	if (format == emap->uris.atom_eventTransfer
+			&& atom->type == emap->uris.atom_Blank) {
+		const LV2_Atom_Object* obj = (const LV2_Atom_Object*) atom;
+		if (obj->body.otype == emap->uris.ui_path) {
+
+			char* sfname = emap->soundfont->get_name(emap->soundfont);
+
+			//std::cout << "soundfont name: " << sfname << std::endl;
+
+			emap->soundfont->iteration_start(emap->soundfont);
+
+			std::map<char*, int>::iterator it = emap->presets.begin();
+
+			//conditionally add the presets to the tree
+
+			//std::cout << "it->second: " << it->second << std::endl;
+			if (emap->presets.find(sfname) == emap->presets.end()) {
+				//if(it != NULL) {
+				//	std::cout << "build out presets for this soundfont"
+				//			<< std::endl;
+				fluid_preset_t preset;
+				while (emap->soundfont->iteration_next(emap->soundfont, &preset)) {
+					int iBank = preset.get_banknum(&preset);
+					int iProg = preset.get_num(&preset);
+					char* preset_name = preset.get_name(&preset);
+					GtkTreeIter child;
+					GtkTreeIter* row;
+
+					gtk_tree_store_append(emap->modelc, &child, row); //new
+					gtk_tree_store_set(emap->modelc, &child,
+							EmapContainer::NAME, preset_name,
+							EmapContainer::PATH, preset_name,
+							EmapContainer::BANK, iBank, EmapContainer::PROGRAM,
+							iProg, -1);
+
+				}
+				emap->presets[sfname] = 1;
+
+			}
+
+		} else if (obj->body.otype == emap->uris.ui_State) {
+			//recv_ui_state(ui, obj);
+		}
+	}
 }
 
 static LV2UI_Descriptor descriptors[] = { { EMAP_UI_URI, instantiate, cleanup,

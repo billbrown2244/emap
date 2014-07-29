@@ -35,6 +35,12 @@ public:
 
 	fluid_synth_t* get_synth();
 
+	fluid_settings_t* get_settings();
+
+	fluid_sfont_t* get_soundfont();
+
+	void set_soundfont(fluid_sfont_t* soundfont);
+
 protected:
 
 	//set up the midi driver
@@ -45,6 +51,8 @@ protected:
 	fluid_synth_t* synth;
 
 	fluid_audio_driver_t* adriver;
+
+	fluid_sfont_t* soundfont; //the loaded soundfont
 
 };
 
