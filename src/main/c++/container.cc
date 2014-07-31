@@ -372,7 +372,7 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 		std::cout << "bank: " << bank << std::endl;
 		std::cout << "program: " << program << std::endl;
 
-		if (is_soundfont(path)) {
+		if (is_soundfont(path) || (bank != -1 && program != -1)) {
 			std::cout << "name: " << name << " is a soundfont lets open it."
 					<< std::endl;
 
@@ -416,17 +416,12 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 				std::cout << "NULL? " << emap->presets.find(name)->second
 						<< std::endl;
 
-				std::map<char*, int>::iterator f = emap->presets.find(name);
-
-				std::cout << "presets.find(name): " << std::endl;
-
-				std::map<char*, int>::iterator e = emap->presets.end();
+				std::cout << "emap->presets[sfname]? " << emap->presets[sfname]
+										<< std::endl;
 
 				//conditionally add the presets to the tree
-
-				std::cout << "presets.end(): " << std::endl;
-
-				if (e == f) {
+				if (emap->presets.find(name) == emap->presets.end()
+						&& emap->presets[sfname] != 1) {
 
 					std::cout << "presets.find(name) == presets.end()"
 							<< std::endl;
@@ -454,17 +449,13 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 
 						//gtk_tree_store_append(emap->modelc, &child, NULL); //new
 
-
-
 						GtkTreeIter child2;
 						GtkTreeIter * row2;
 
 						gtk_tree_store_append(emap->modelc, &child2, &iter); //new
 						std::cout << "appended new row." << std::endl;
-						gtk_tree_store_set(emap->modelc, &child2,
-								NAME, preset_name,
-								PATH, preset_name,
-								BANK, iBank,
+						gtk_tree_store_set(emap->modelc, &child2, NAME,
+								preset_name, PATH, path, BANK, iBank,
 								PROGRAM, iProg, -1);
 						std::cout << "appended new row2." << std::endl;
 
@@ -741,7 +732,7 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 		GtkTreeIter *row, GtkTreeStore* model) {
 
-	std::cout << "loading tree for:" << orig_path << std::endl;
+	//std::cout << "loading tree for:" << orig_path << std::endl;
 
 	//std::cout << "loading tree for:" << orig_path << std::endl;
 
@@ -767,7 +758,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 	EmapContainer::sortstruct s(this);
 	std::sort(sorted.begin(), sorted.end(), s);
 
-	std::cout << "sortstruct" << std::endl;
+	//std::cout << "sortstruct" << std::endl;
 
 	//parent and child rows.
 	GtkTreeIter child;
@@ -803,7 +794,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 				gtk_tree_store_append(model, &child, NULL);	//new row
 
-				std::cout << "created new row." << std::endl;
+				//std::cout << "created new row." << std::endl;
 
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
 						result, BANK, -1, PROGRAM, -1, -1);
@@ -812,7 +803,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 			} else {
 
-				std::cout << "new path" << std::endl;
+				//std::cout << "new path" << std::endl;
 
 				gtk_tree_store_append(model, &child, row);	//new
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
@@ -1255,44 +1246,8 @@ static void port_event(LV2UI_Handle handle, uint32_t port_index,
 	if (format == emap->uris.atom_eventTransfer
 			&& atom->type == emap->uris.atom_Blank) {
 		const LV2_Atom_Object* obj = (const LV2_Atom_Object*) atom;
-		if (obj->body.otype == emap->uris.ui_path) {
-
-			char* sfname = emap->soundfont->get_name(emap->soundfont);
-
-			//std::cout << "soundfont name: " << sfname << std::endl;
-
-			emap->soundfont->iteration_start(emap->soundfont);
-
-			std::map<char*, int>::iterator it = emap->presets.begin();
-
-			//conditionally add the presets to the tree
-
-			//std::cout << "it->second: " << it->second << std::endl;
-			if (emap->presets.find(sfname) == emap->presets.end()) {
-				//if(it != NULL) {
-				//	std::cout << "build out presets for this soundfont"
-				//			<< std::endl;
-				fluid_preset_t preset;
-				while (emap->soundfont->iteration_next(emap->soundfont, &preset)) {
-					int iBank = preset.get_banknum(&preset);
-					int iProg = preset.get_num(&preset);
-					char* preset_name = preset.get_name(&preset);
-					GtkTreeIter child;
-					GtkTreeIter* row;
-
-					gtk_tree_store_append(emap->modelc, &child, row); //new
-					gtk_tree_store_set(emap->modelc, &child,
-							EmapContainer::NAME, preset_name,
-							EmapContainer::PATH, preset_name,
-							EmapContainer::BANK, iBank, EmapContainer::PROGRAM,
-							iProg, -1);
-
-				}
-				emap->presets[sfname] = 1;
-
-			}
-
-		} else if (obj->body.otype == emap->uris.ui_State) {
+		if (obj->body.otype == emap->uris.ui_State) {
+			std::cout << "recv_ui_state" << std::endl;
 			//recv_ui_state(ui, obj);
 		}
 	}
