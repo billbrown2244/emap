@@ -207,7 +207,7 @@ static void connect_port(LV2_Handle instance, uint32_t port, void* data) {
 		break;
 	case MIDI_IN:
 		synth->control = (const LV2_Atom_Sequence*) data;
-		std::cout << "connect_port EMAP lv2" << std::endl;
+		//std::cout << "connect_port EMAP lv2" << std::endl;
 		break;
 	case UI_NOTIFY:
 		synth->notify = (const LV2_Atom_Sequence*) data;
