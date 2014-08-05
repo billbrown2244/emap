@@ -187,6 +187,9 @@ static LV2_Handle instantiate(const LV2_Descriptor* descriptor, double rate,
 	synth->synth = new FSynth(true, rate);
 
 	map_emap_uris(synth->map, &synth->uris);
+
+	std::cout << "instantiated EMAP lv2" << std::endl;
+
 	return (LV2_Handle) synth;
 }
 
@@ -215,7 +218,7 @@ static void connect_port(LV2_Handle instance, uint32_t port, void* data) {
 
 static void activate(LV2_Handle instance) {
 	std::cout << "activate EMAP lv2" << std::endl;
-	Synth* synth = (Synth*) instance;
+	//Synth* synth = (Synth*) instance;
 
 }
 
@@ -232,7 +235,7 @@ static void run(LV2_Handle instance, uint32_t n_samples) {
 
 	LV2_ATOM_SEQUENCE_FOREACH(synth->control, ev)
 	{
-		//std::cout << "ev->body.type: " << ev->body.type << std::endl;
+		std::cout << "ev->body.type: " << ev->body.type << std::endl;
 		///std::cout << "synth->uris.ui_State: " << synth->uris.ui_State
 		//		<< std::endl;
 		//std::cout << "synth->uris.midi_MidiEvent: "
@@ -322,10 +325,10 @@ static void run(LV2_Handle instance, uint32_t n_samples) {
 				int s = *sbank;
 				int p = *sprog;
 
-				std::cout << "name: " << namestr << std::endl;
-				std::cout << "path: " << pathstr << std::endl;
-				std::cout << "bank: " << sbank << std::endl;
-				std::cout << "program: " << sprog << std::endl;
+				std::cout << "load name: " << namestr << std::endl;
+				std::cout << "load path: " << pathstr << std::endl;
+				std::cout << "load bank: " << s << std::endl;
+				std::cout << "load program: " << p << std::endl;
 
 				fluid_synth_sfload(fsynth, pathstr, 1);
 				synth->synth->set_soundfont(fluid_synth_get_sfont(fsynth, 0));

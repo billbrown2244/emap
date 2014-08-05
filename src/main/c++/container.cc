@@ -202,12 +202,13 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 		this->hide();
 
 	} else {
-		gtk_init(0, NULL);
+
+		std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
 
 		GtkWindow* emap2 = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 		emap = emap2;
 
-		std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
+		std::cout << "called gtk_window_new." << std::endl;
 
 		gtk_window_set_title(GTK_WINDOW(emap2),
 				"EMAP - Easy Midi Audio Production");
@@ -216,18 +217,28 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 		gtk_window_set_default_size(GTK_WINDOW(emap2), 400, 400);
 
-		synth = synth_new;
+		std::cout << "set default window size" << std::endl;
 
+		/* deprecated */
 		GtkWidget* container2 = gtk_table_new(2, 0, false);
 		std::cout << "made container2" << std::endl;
 		container = GTK_TABLE(container2);
+
+		//Gtk::Grid* abc = new Gtk::Grid();
+
+		//std::cout << "made gtkmm grid" << std::endl;
+
+		/*new
+		 container2 = gtk_grid_new();
+		 std::cout << "set grid new" << std::endl;
+		 */
 
 		GtkWidget* scrolled2 = gtk_scrolled_window_new(NULL, NULL); //hadj, vadj);
 		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled2),
 				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 		std::cout << "made scrolled2" << std::endl;
 
-		//path_container = gtk_grid_new();
+		/* deprecated */
 		GtkWidget* path_container2 = gtk_table_new(1, 4, true);
 		std::cout << "made path_container2" << std::endl;
 
@@ -256,8 +267,11 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 		GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
 		GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes("",
 				renderer, "text", TEXT_COLUMN, NULL);
-		//gtk_tree_view_column_pack_start(column, renderer, true);
+
 		gtk_tree_view_append_column(GTK_TREE_VIEW(treeview2), column);
+
+		//initialize the presets to NULL
+		this->cpresets = NULL;
 
 		std::cout << "made base tree model2." << std::endl;
 
@@ -280,6 +294,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 		std::cout << "connected tree and button signals." << std::endl;
 
+		/* deprecated */
 		gtk_table_attach(GTK_TABLE(path_container2), set_root_folder_button2, 0,
 				1, 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK,
 				0, 0);
@@ -290,13 +305,25 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 				0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0,
 				0);
 
+		/* new
+		 gtk_grid_attach(GTK_GRID(container2), set_root_folder_button2, 0, 0, 1,
+		 1);
+		 gtk_grid_attach(GTK_GRID(container2), expand_all_button2, 1, 0, 1, 1);
+		 gtk_grid_attach(GTK_GRID(container2), collapse_all_button2, 2, 0, 1, 1);
+		 */
+
 		//Setup the ScrolledWindow and add the TreeView in it
 		gtk_container_add((GtkContainer*) scrolled2, (GtkWidget*) treeview2);
 
+		/*deprecated */
 		gtk_table_attach(GTK_TABLE(container2), path_container2, 0, 1, 0, 1,
 				(GtkAttachOptions)(GTK_FILL | GTK_EXPAND), GTK_SHRINK, 0, 0);
 
 		gtk_table_attach_defaults(GTK_TABLE(container2), scrolled2, 0, 1, 1, 2); //0, 2, 1, 2);
+
+		/*new
+		 gtk_grid_attach(GTK_GRID(container2), scrolled2, 2, 1, 1, 1);
+		 */
 
 		gtk_container_add(GTK_CONTAINER(emap2), container2);
 
@@ -326,7 +353,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 					<< root_folder << std::endl;
 		}
 
-		GtkTreeIter *row;	// = gtk_tree_path_new();
+		GtkTreeIter *row = NULL;	// = gtk_tree_path_new();
 
 		//populate the tree
 		std::cout << "tree root folder: " << root_folder << std::endl;
@@ -351,11 +378,12 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 
 	EmapContainer* emap = (EmapContainer*) data;
 
+	//struct cpresets* presets = emap->cpresets;
+
 	GtkTreeSelection* selection = emap->selection;
 
 	GtkTreeIter iter;
-	GtkTreeIter* row;
-	GtkTreeIter child;
+	GtkTreeIter* row = NULL;
 	GtkTreeModel * model;
 	char* name;
 	char* path;
@@ -405,23 +433,29 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 				fluid_sfont_t* soundfont = fluid_synth_get_sfont(synth, 0);
 				std::cout << "fluid_sfont_t. " << std::endl;
 
-				char* sfname = soundfont->get_name(soundfont);
+				//char* sfname = soundfont->get_name(soundfont);
 
-				std::cout << "sfname: " << sfname << std::endl;
+				//std::cout << "sfname: " << sfname << std::endl;
 
 				soundfont->iteration_start(soundfont);
 
 				std::cout << "started iteration " << std::endl;
 
-				std::cout << "NULL? " << emap->presets.find(name)->second
+				std::cout << "presets size before: "
+						<< HASH_COUNT(emap->cpresets) << std::endl;
+
+				struct cpresets *existingpreset = 0;
+				std::cout << "pexistingpreset before: " << existingpreset
 						<< std::endl;
 
-				std::cout << "emap->presets[sfname]? " << emap->presets[sfname]
-										<< std::endl;
+				HASH_FIND_STR(emap->cpresets, path, existingpreset);
 
+				if (HASH_COUNT(emap->cpresets) > 0 && existingpreset != NULL) {
+					std::cout << "pexistingpreset after: "
+							<< existingpreset->soundfont_key << std::endl;
+				}
 				//conditionally add the presets to the tree
-				if (emap->presets.find(name) == emap->presets.end()
-						&& emap->presets[sfname] != 1) {
+				if (HASH_COUNT(emap->cpresets) == 0 || existingpreset == NULL) {
 
 					std::cout << "presets.find(name) == presets.end()"
 							<< std::endl;
@@ -447,20 +481,38 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 
 						std::cout << "row: " << row << std::endl;
 
-						//gtk_tree_store_append(emap->modelc, &child, NULL); //new
-
 						GtkTreeIter child2;
-						GtkTreeIter * row2;
 
-						gtk_tree_store_append(emap->modelc, &child2, &iter); //new
+						gtk_tree_store_append(emap->modelc, &child2, &iter);
 						std::cout << "appended new row." << std::endl;
 						gtk_tree_store_set(emap->modelc, &child2, NAME,
-								preset_name, PATH, path, BANK, iBank,
-								PROGRAM, iProg, -1);
+								preset_name, PATH, path, BANK, iBank, PROGRAM,
+								iProg, -1);
 						std::cout << "appended new row2." << std::endl;
 
 					}
-					emap->presets[sfname] = 1;
+					//add the preset
+					//add_preset(presets, path, "TRUE");
+					struct cpresets* presetadd = (struct cpresets*) malloc(
+							sizeof(struct cpresets));
+					std::cout << "allocated preset: " << presetadd << std::endl;
+
+					//const char* preset_path = path;
+					//strcpy(presetadd->soundfont_key, path);
+					presetadd->soundfont_key = path;
+					std::cout << "set soundfont_key." << std::endl;
+
+					const char* exists = "TRUE";
+					presetadd->exists = exists;
+
+					HASH_ADD_STR(emap->cpresets, soundfont_key, presetadd);
+					std::cout << "added preset to map." << std::endl;
+
+					//strcpy(presetadd->exists, );
+					std::cout << "set exists." << std::endl;
+
+					std::cout << "presets size after: "
+							<< HASH_COUNT(emap->cpresets) << std::endl;
 
 				} else {
 					std::cout << "(presets.find(name) == presets.end()) false"
@@ -1075,6 +1127,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 		const char * plugin_uri, const char * bundle_path,
 		LV2UI_Write_Function write_function, LV2UI_Controller controller,
 		LV2UI_Widget * widget, const LV2_Feature * const * features) {
+	std::cout << "instantiate EMAP lv2 UI" << std::endl;
 
 	if (strcmp(plugin_uri, EMAP_URI) != 0) {
 		fprintf(stderr,
@@ -1082,6 +1135,10 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 				plugin_uri);
 		return NULL;
 	}
+
+	gtk_init(0, NULL);
+
+	std::cout << "called gtk_init." << std::endl;
 
 	//allocate an emap instance.
 	EmapContainer* emap = new EmapContainer(NULL, true);
@@ -1113,7 +1170,7 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 	std::cout << "Allocated SourceGUI!" << std::endl;
 
 	//reparent the container to something the same default size as the standalone app
-	GtkWidget* new_parent = gtk_vbox_new(false, 0);
+	GtkWidget* new_parent = gtk_vbox_new(false, 0);	//gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);//
 	gtk_widget_set_size_request(new_parent, 400, 400);
 	gtk_widget_reparent(GTK_WIDGET(emap->container), new_parent);
 	gtk_widget_set_size_request(new_parent, 400, 400);
@@ -1124,15 +1181,13 @@ static LV2UI_Handle instantiate(const struct _LV2UI_Descriptor * descriptor,
 	//hide the inner top level window
 	gtk_widget_hide(GTK_WIDGET(emap->emap));
 
-	std::cout << "returning UI..." << std::endl;
+	std::cout << "instantiated EMAP lv2 UI" << std::endl;
 
 	return (LV2UI_Handle) emap;
 }
 
 /* tell the back end to load the correct soundfont and patch. */
-void EmapContainer::send_ui_state(EmapContainer* data) {
-
-	EmapContainer* emap = (EmapContainer*) data;
+void EmapContainer::send_ui_state(EmapContainer* emap) {
 
 	std::cout << "send the UI state to the synth." << std::endl;
 
@@ -1146,6 +1201,7 @@ void EmapContainer::send_ui_state(EmapContainer* data) {
 	LV2_Atom_Forge forge;
 	forge = emap->forge;
 
+	//may need later
 	LV2_Atom* obj = (LV2_Atom*) lv2_atom_forge_resource(&emap->forge, &frame, 0,
 			emap->uris.ui_State);
 
@@ -1209,7 +1265,13 @@ void EmapContainer::send_ui_state(EmapContainer* data) {
 static void cleanup(LV2UI_Handle ui) {
 	std::cout << "cleanup EMAP UI lv2" << std::endl;
 	EmapContainer *emap = (EmapContainer *) ui;
-	emap->send_ui_disable(emap);
+	std::cout << "emap name on cleanup: " << (emap->name == NULL) << std::endl;
+	std::cout << "emap path on cleanup: " << (emap->path == NULL) << std::endl;
+	std::cout << "emap bank on cleanup: " << (emap->bank == 0) << std::endl;
+	std::cout << "emap program on cleanup: " << emap->program << std::endl;
+	if (emap->name != NULL && emap->path != NULL) {
+		emap->send_ui_disable(emap);
+	}
 	free(emap);
 }
 
@@ -1220,18 +1282,32 @@ void EmapContainer::send_ui_disable(EmapContainer *emap) {
 
 	send_ui_state(emap);
 
-	uint8_t obj_buf[64];
-	lv2_atom_forge_set_buffer(&emap->forge, obj_buf, sizeof(obj_buf));
+	/*
 
-	LV2_Atom_Forge_Frame frame;
+	 std::cout << "sent ui state to the back end." << std::endl;
 
-	LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_blank(&emap->forge, &frame, 0,
-			emap->uris.ui_Off);
+	 uint8_t obj_buf[64];
+	 lv2_atom_forge_set_buffer(&emap->forge, obj_buf, sizeof(obj_buf));
 
-	lv2_atom_forge_pop(&emap->forge, &frame);
+	 std::cout << "lv2_atom_forge_set_buffer" << std::endl;
 
-	emap->write(emap->controller, 0, lv2_atom_total_size(msg),
-			emap->uris.atom_eventTransfer, msg);
+	 LV2_Atom_Forge_Frame frame;
+
+	 LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_blank(&emap->forge, &frame, 0,
+	 emap->uris.ui_Off);
+
+	 std::cout << "lv2_atom_forge_blank" << std::endl;
+
+	 lv2_atom_forge_pop(&emap->forge, &frame);
+
+	 std::cout << "lv2_atom_forge_pop" << std::endl;
+
+	 emap->write(emap->controller, 0, lv2_atom_total_size(msg),
+	 emap->uris.atom_eventTransfer, msg);
+
+	 std::cout << "emap->write" << std::endl;
+
+	 */
 }
 
 static void port_event(LV2UI_Handle handle, uint32_t port_index,

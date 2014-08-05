@@ -26,6 +26,7 @@
 #include <fluidsynth.h>
 #include <gdk/gdkkeysyms.h>
 #include "lv2.h"
+#include "uthash.h"
 
 class EmapContainer: public Gtk::Window {
 public:
@@ -52,7 +53,9 @@ public:
 	const char* path;
 	int bank, program;
 
-	GtkTable * container;
+
+	GtkWidget* container2;
+	GtkTable * container; //deprecated
 	Gtk::Table* path_container;
 
 	Gtk::ScrolledWindow *scrolled;
@@ -72,6 +75,15 @@ public:
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
 	std::map<char*, int> presets; //map for holding build out presets.
+
+	struct cpresets {
+		char* soundfont_key;
+		const char* exists;
+		UT_hash_handle hh;
+	};
+
+	struct cpresets* cpresets;
+
 
 	struct sortstruct {
 		// sortstruct needs to know its containing object

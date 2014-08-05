@@ -64,7 +64,23 @@
 								<directory>${shared.lib.path}</directory>
 							</lib>
 							<lib>
+								<name>${gtklibshared}</name>
+								<type>shared</type>
+								<directory>${shared.lib.path}</directory>
+							</lib>
+							<lib>
+								<name>${gliblib}</name>
+								<type>shared</type>
+								<directory>${shared.lib.path}</directory>
+							</lib>
+							<!-- needed by full version -->
+							<lib>
 								<name>${gtkmmlib}</name>
+								<type>shared</type>
+								<directory>${shared.lib.path}</directory>
+							</lib>
+							<lib>
+								<name>${gobjectlib}</name>
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
@@ -88,21 +104,7 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
-							<lib>
-								<name>${gtklibshared}</name>
-								<type>shared</type>
-								<directory>${shared.lib.path}</directory>
-							</lib>
-							<lib>
-								<name>${gliblib}</name>
-								<type>shared</type>
-								<directory>${shared.lib.path}</directory>
-							</lib>
-							<lib>
-								<name>${gobjectlib}</name>
-								<type>shared</type>
-								<directory>${shared.lib.path}</directory>
-							</lib>
+							
 						</libs>
 					</linker>
 				</configuration>
