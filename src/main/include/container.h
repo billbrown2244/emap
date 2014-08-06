@@ -55,8 +55,10 @@ public:
 
 
 	GtkWidget* container2;
-	GtkTable * container; //deprecated
-	Gtk::Table* path_container;
+	//GtkTable * container; //deprecated
+	//Gtk::Table* path_container;
+	GtkGrid* container;
+	Gtk::Grid* path_container;
 
 	Gtk::ScrolledWindow *scrolled;
 
@@ -77,13 +79,14 @@ public:
 	std::map<char*, int> presets; //map for holding build out presets.
 
 	struct cpresets {
+	public:
 		char* soundfont_key;
 		const char* exists;
 		UT_hash_handle hh;
 	};
 
-	struct cpresets* cpresets;
-
+	//struct cpresets* cpresets;
+	cpresets* m_cpresets;
 
 	struct sortstruct {
 		// sortstruct needs to know its containing object
