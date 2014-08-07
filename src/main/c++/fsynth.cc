@@ -235,7 +235,7 @@ static void run(LV2_Handle instance, uint32_t n_samples) {
 
 	LV2_ATOM_SEQUENCE_FOREACH(synth->control, ev)
 	{
-		std::cout << "ev->body.type: " << ev->body.type << std::endl;
+		//std::cout << "ev->body.type: " << ev->body.type << std::endl;
 		///std::cout << "synth->uris.ui_State: " << synth->uris.ui_State
 		//		<< std::endl;
 		//std::cout << "synth->uris.midi_MidiEvent: "
