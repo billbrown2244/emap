@@ -53,16 +53,13 @@ public:
 	const char* path;
 	int bank, program;
 
-
-	GtkWidget* container2;
-	//GtkTable * container; //deprecated
-	//Gtk::Table* path_container;
-	GtkGrid* container;
+	//full
 	Gtk::Grid* path_container;
-
 	Gtk::ScrolledWindow *scrolled;
+	Gtk::TreeView *treeview;
 
-	GtkTreeView *treeview;
+	//lv2
+	GtkWidget* container2;
 	GtkTreeSelection* selection;
 
 	Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button,
@@ -76,7 +73,7 @@ public:
 	std::string root_folder, home_dir, config_file;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
-	std::map<char*, int> presets; //map for holding build out presets.
+	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
 
 	struct cpresets {
 	public:
@@ -117,7 +114,7 @@ public:
 	bool on_key_press_or_release_event(GdkEventKey* event);
 	bool on_key_press_or_release_event2(GtkTreeView *tree_view,
 			gpointer user_data);
-	void on_selection_changed(GtkTreeView* treeview);
+	void on_selection_changed(Gtk::TreeView* treeview);
 	void on_selection_changedLv2(GtkWidget *widget, gpointer treeview);
 	bool is_soundfont(const char * filename);
 	void loadTree(const char* orig_root_folder, const char* root_folder,

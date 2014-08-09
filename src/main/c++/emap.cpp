@@ -13,37 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//============================================================================
-// Name        : EMAP.cpp
-// Author      : Bill Brown
-// Version     :
-// Copyright   : Apache 2
-// Description : Easy Midi Audio Production
-//============================================================================
-
-#include "container.h"
 #include <gtkmm/application.h>
-#include <fluidsynth.h>
 #include <stdio.h>
 #include <iostream>
 #include "fsynth.h"
+#include "container.h"
 
 int main(int argc, char *argv[]) {
-	Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv,
+	Glib::RefPtr < Gtk::Application > app = Gtk::Application::create(argc, argv,
 			"org.gtkmm.examples.base");
 
-	//try {
+	//Connect the UI and the fluidsynth
+	FSynth fsynth(false, 0);
+	EmapContainer emap(fsynth.get_synth(), false);
+	std::cout << "Started EMAP: " << std::endl;
+	return app->run(emap);
 
-		//Connect front end and synth
-		FSynth fsynth(false,0);
-		std::cout << "Start EMAP: " << std::endl;
-		EmapContainer emap(fsynth.get_synth(),false);
-
-		//Shows the window and returns when it is closed.
-		return app->run(emap);
-
-	//} catch (std::exception& e) {
-		//std::cout << "Standard exception: " << e.what() << std::endl;
-	//}
 }
 
