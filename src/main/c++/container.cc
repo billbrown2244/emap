@@ -21,7 +21,6 @@
 
 #include "container.h"
 #include "fsynth.h"
-#include <gtkmm/main.h>
 #include <gtkmm/window.h>
 #include <gtkmm/table.h>
 #include <gtkmm/scrolledwindow.h>
@@ -50,41 +49,47 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 	std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
 
-	GtkWindow* emap2 = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-	emap = emap2;
+	//the outer root container.
+	emap = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
 	std::cout << "called gtk_window_new." << std::endl;
 
-	gtk_window_set_title(GTK_WINDOW(emap2),
+	gtk_window_set_title(GTK_WINDOW(emap),
 			"EMAP - Easy Midi Audio Production");
 
 	std::cout << "set title" << std::endl;
 
-	gtk_window_set_default_size(GTK_WINDOW(emap2), 400, 400);
+	gtk_window_set_default_size(GTK_WINDOW(emap), 400, 400);
 
 	std::cout << "set default window size" << std::endl;
 
+	//the main container.
 	container2 = gtk_table_new(2, 0, false);
 	std::cout << "made container" << std::endl;
 
+	//table to hold the buttons
 	button_container2 = gtk_table_new(1, 4, true);
 
-	GtkWidget* scrolled2 = gtk_scrolled_window_new(NULL, NULL);
+	//the window holding the tree view of the files
+	scrolled2 = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled2),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
 	std::cout << "made scrolled2" << std::endl;
 
-	GtkWidget* treeview2 = gtk_tree_view_new();
+	//displays the file tree.
+	treeview2 = gtk_tree_view_new();
 	std::cout << "made treeview2" << std::endl;
 
-	GtkWidget* set_root_folder_button2 = gtk_button_new_with_label(
+	//setup the buttons.
+	set_root_folder_button2 = gtk_button_new_with_label(
 			"Set Root Folder");
 	std::cout << "made set_root_folder_button2" << std::endl;
 
-	GtkWidget* expand_all_button2 = gtk_button_new_with_label("Expand All");
+	expand_all_button2 = gtk_button_new_with_label("Expand All");
 	std::cout << "made expand_all_button2" << std::endl;
 
-	GtkWidget* collapse_all_button2 = gtk_button_new_with_label("Collapse All");
+	collapse_all_button2 = gtk_button_new_with_label("Collapse All");
 	std::cout << "made collapse_all_button2" << std::endl;
 
 	std::cout << "created EMAP base components." << std::endl;
@@ -124,12 +129,13 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 	std::cout << "connected tree and button signals." << std::endl;
 
-	gtk_table_attach(GTK_TABLE(button_container2), set_root_folder_button2, 0, 1,
-			0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
+	gtk_table_attach(GTK_TABLE(button_container2), set_root_folder_button2, 0,
+			1, 0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0,
+			0);
 	gtk_table_attach(GTK_TABLE(button_container2), expand_all_button2, 1, 2, 0,
 			1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
-	gtk_table_attach(GTK_TABLE(button_container2), collapse_all_button2, 2, 3, 0,
-			1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
+	gtk_table_attach(GTK_TABLE(button_container2), collapse_all_button2, 2, 3,
+			0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
 
 	//Setup the ScrolledWindow and add the TreeView in it
 	gtk_container_add((GtkContainer*) scrolled2, (GtkWidget*) treeview2);
@@ -139,7 +145,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 	gtk_table_attach_defaults(GTK_TABLE(container2), scrolled2, 0, 1, 1, 2);
 
-	gtk_container_add(GTK_CONTAINER(emap2), container2);
+	gtk_container_add(GTK_CONTAINER(emap), container2);
 
 	//set up the root folder
 	passwd *pw = getpwuid(getuid());
@@ -148,7 +154,9 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 	std::fstream fbuf;
 	config_file = home_dir + "/.config/emap/rootdir.txt";
-	std::cout << "config file:" << config_file << std::endl;
+	std::cout << "config file: '" << config_file
+			<< "'.  Change this in ~/.config/emap/rootdir.txt if you experience and issue."
+			<< std::endl;
 
 	fbuf.open(config_file.c_str(),
 			std::ios::in | std::ios::out | std::ios::binary);
@@ -176,14 +184,17 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
 	std::cout << "loaded initial tree" << std::endl;
 
-	gtk_widget_show_all(GTK_WIDGET(emap2));
+	gtk_widget_show_all (GTK_WIDGET(emap));
 
-}
-
-EmapContainer::~EmapContainer() {
-	delete treeview;
+} EmapContainer::~EmapContainer() {
+	delete emap;
+	delete container2;
 	delete button_container2;
-	delete scrolled;
+	delete scrolled2;
+	delete treeview2;
+	delete set_root_folder_button2;
+	delete expand_all_button2;
+	delete collapse_all_button2;
 }
 
 void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {

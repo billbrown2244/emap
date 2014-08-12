@@ -53,16 +53,13 @@ public:
 	const char* path;
 	int bank, program;
 
-	//full
-	GtkWidget *container2, *button_container2;
 	Gtk::ScrolledWindow *scrolled;
 	Gtk::TreeView *treeview;
 	GtkTreeSelection* selection;
 
-	//Gtk::Button
-	GtkWidget *set_root_folder_button, *quit_button, *expand_all_button,
-			*collapse_all_button;
-
+	GtkWidget *set_root_folder_button2, *expand_all_button2,
+			*collapse_all_button2, *container2, *button_container2, *scrolled2,
+			*treeview2;
 
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;

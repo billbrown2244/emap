@@ -65,6 +65,7 @@ emap:lv2
     ].
    
 emap:lv2ui
+#we have to swap between GtkUI and Gtk3UI depending on where this is used
     a ui:GtkUI ;
     ui:binary <libemap-0.0.2-SNAPSHOT.so>;
     lv2:requiredFeature urid:map ;
