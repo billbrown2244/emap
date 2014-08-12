@@ -12,7 +12,7 @@
 		<plugins>
 			<plugin>
 				<groupId>com.github.maven-nar</groupId>
-			       	<artifactId>nar-maven-plugin</artifactId>
+				<artifactId>nar-maven-plugin</artifactId>
 				<version>3.1.0</version>
 				<extensions>true</extensions>
 
@@ -63,11 +63,13 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
+							<!-- 
 							<lib>
 								<name>${gtklibshared}</name>
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
+							 -->
 							<lib>
 								<name>${gliblib}</name>
 								<type>shared</type>
@@ -104,7 +106,7 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
-							
+
 						</libs>
 					</linker>
 				</configuration>
@@ -128,6 +130,12 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<shared.lib.path>/usr/lib</shared.lib.path>
 		<shared.include.path>/usr/include</shared.include.path>
+		<!-- different for various software see the profiles -->
+		<gdkmmlib>gdkmm-3.0</gdkmmlib>
+		<gtklib>gtk-3.0</gtklib>
+		<gtkmmlib>gtkmm-3.0</gtkmmlib>
+		<gtklibshared>gtk-3</gtklibshared>
+		<!-- end different for various software see the profiles -->
 		<atklib>atk-1.0</atklib>
 		<atkmmlib>atkmm-1.6</atkmmlib>
 		<cairolib>cairo</cairolib>
@@ -135,17 +143,14 @@
 		<cpplib>c++/4.8.0</cpplib>
 		<fluidsynthlib>fluidsynth</fluidsynthlib>
 		<freetype2lib>freetype2</freetype2lib>
-		<gdkmmlib>gdkmm-3.0</gdkmmlib>
 		<gdk-pixbuflib>gdk-pixbuf-2.0</gdk-pixbuflib>
 		<giommlib>giomm-2.4</giommlib>
 		<gliblib>glib-2.0</gliblib>
 		<gobjectlib>gobject-2.0</gobjectlib>
 		<glibmmlib>glibmm-2.4</glibmmlib>
-		<gtklib>gtk-3.0</gtklib>
-		<gtkmmlib>gtkmm-3.0</gtkmmlib>
 		<pangolib>pango-1.0</pangolib>
-		<pangommlib>pangomm-1.4</pangommlib>		
-		<sigclib>sigc-2.0</sigclib>		
+		<pangommlib>pangomm-1.4</pangommlib>
+		<sigclib>sigc-2.0</sigclib>
 		<sigcpplib>sigc++-2.0</sigcpplib>
 		<aol>amd64-Linux-gpp</aol>
 		<lv2devlib>lv2-c++-tools</lv2devlib>
@@ -159,9 +164,19 @@
 
 	<profiles>
 		<profile>
-			<id>lv2</id>
+			<id>lv2-gtk2</id>
 			<properties>
-			    <binaryType>shared</binaryType>
+				<binaryType>shared</binaryType>
+				<gdkmmlib>gdkmm-2.4</gdkmmlib>
+				<gtklib>gtk-2.0</gtklib>
+				<gtkmmlib>gtkmm-2.4</gtkmmlib>
+				<gtklibshared>gtk-2</gtklibshared>
+			</properties>
+		</profile>
+		<profile>
+			<id>lv2-gtk3</id>
+			<properties>
+				<binaryType>shared</binaryType>
 			</properties>
 		</profile>
 	</profiles>

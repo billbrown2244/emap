@@ -23,7 +23,7 @@
 #include "fsynth.h"
 #include <gtkmm/main.h>
 #include <gtkmm/window.h>
-#include <gtkmm/grid.h>
+#include <gtkmm/table.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/label.h>
 #include <gtkmm/entry.h>
@@ -48,275 +48,141 @@
 
 EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
-	if (!is_lv2) { // this is the full version
+	std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
 
-		emap = (new Gtk::Window())->gobj();
+	GtkWindow* emap2 = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+	emap = emap2;
 
-		std::cout << "made top emap window:" << std::endl;
+	std::cout << "called gtk_window_new." << std::endl;
 
-		set_title("EMAP - Easy Midi Audio Production");
+	gtk_window_set_title(GTK_WINDOW(emap2),
+			"EMAP - Easy Midi Audio Production");
 
-		std::cout << "set title:" << std::endl;
+	std::cout << "set title" << std::endl;
 
-		synth = synth_new;
+	gtk_window_set_default_size(GTK_WINDOW(emap2), 400, 400);
 
-		scrolled = new Gtk::ScrolledWindow();
-		path_container = new Gtk::Grid();
+	std::cout << "set default window size" << std::endl;
 
-		std::cout << "made container and path_container:" << std::endl;
+	container2 = gtk_table_new(2, 0, false);
+	std::cout << "made container" << std::endl;
 
-		set_root_folder_button = new Gtk::Button("Set Root Folder");
-		quit_button = new Gtk::Button("Quit");
-		expand_all_button = new Gtk::Button("Expand All");
-		collapse_all_button = new Gtk::Button("Collapse All");
+	button_container2 = gtk_table_new(1, 4, true);
 
-		std::cout << "buttons:" << std::endl;
+	GtkWidget* scrolled2 = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled2),
+			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	std::cout << "made scrolled2" << std::endl;
 
-		//setup the TreeView
-		model = Gtk::TreeStore::create(columns);
-		treeview = new Gtk::TreeView(model);//GTK_TREE_VIEW(gtk_tree_view_new())
-		std::cout << "created model:" << std::endl;
+	GtkWidget* treeview2 = gtk_tree_view_new();
+	std::cout << "made treeview2" << std::endl;
 
-		treeview->set_model(model);
+	GtkWidget* set_root_folder_button2 = gtk_button_new_with_label(
+			"Set Root Folder");
+	std::cout << "made set_root_folder_button2" << std::endl;
 
-		treeview->append_column("", columns.name);
+	GtkWidget* expand_all_button2 = gtk_button_new_with_label("Expand All");
+	std::cout << "made expand_all_button2" << std::endl;
 
-		treeview->signal_key_press_event().connect(
-				sigc::mem_fun(this,
-						&EmapContainer::on_key_press_or_release_event));
-		treeview->signal_key_release_event().connect(
-				sigc::mem_fun(this,
-						&EmapContainer::on_key_press_or_release_event));
-		treeview->add_events(
-				Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+	GtkWidget* collapse_all_button2 = gtk_button_new_with_label("Collapse All");
+	std::cout << "made collapse_all_button2" << std::endl;
 
-		std::cout << "connected tree signals:" << std::endl;
+	std::cout << "created EMAP base components." << std::endl;
 
-		//connect the signals
-		set_root_folder_button->signal_clicked().connect(
-				sigc::bind<EmapContainer*>(
-						sigc::mem_fun(*this, &EmapContainer::on_button_clicked),
-						this));
+	//setup the TreeView
+	modelc = gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
+			G_TYPE_INT);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(treeview2), (GtkTreeModel*) modelc);
 
-		quit_button->signal_clicked().connect(
-				sigc::mem_fun(*this, &EmapContainer::on_button_quit), this);
+	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+	GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes("",
+			renderer, "text", TEXT_COLUMN, NULL);
 
-		expand_all_button->signal_clicked().connect(
-				sigc::bind<GtkTreeView*>(
-						sigc::mem_fun(*this, &EmapContainer::on_button_expand),
-						treeview->gobj()));
+	gtk_tree_view_append_column(GTK_TREE_VIEW(treeview2), column);
 
-		collapse_all_button->signal_clicked().connect(
-				sigc::bind<GtkTreeView*>(
-						sigc::mem_fun(*this,
-								&EmapContainer::on_button_collapse), treeview->gobj()));
+	//initialize the presets to NULL
+	this->m_cpresets = NULL;
 
-		//Connect signal:signal_row_activated
-		Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
-				treeview->get_selection();
+	std::cout << "made base tree model2." << std::endl;
 
-		refTreeSelection->signal_changed().connect(
-				sigc::bind<Gtk::TreeView*>(
-						sigc::mem_fun(*this,
-								&EmapContainer::on_selection_changed),
-						treeview));
+	//connect the signals
+	g_signal_connect(G_OBJECT(set_root_folder_button2), "clicked",
+			G_CALLBACK(&EmapContainer::on_button_clickedLv2), this);
 
-		//add the path_* widgets to the path_container
+	g_signal_connect(expand_all_button2, "clicked",
+			G_CALLBACK(&EmapContainer::on_button_expand),
+			GTK_TREE_VIEW(treeview2));
 
+	g_signal_connect(collapse_all_button2, "clicked",
+			G_CALLBACK(&EmapContainer::on_button_collapse),
+			GTK_TREE_VIEW(treeview2));
 
-		path_container->attach(*set_root_folder_button, 0, 0, 1, 1);
-		path_container->attach(*expand_all_button, 1, 0, 1, 1);
-		path_container->attach(*collapse_all_button, 2, 0, 1, 1);
-		path_container->attach(*quit_button, 3, 0, 1, 1);
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview2));
 
-		//Setup the ScrolledWindow and add the TreeView in it
-		scrolled->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-		scrolled->add(*(treeview));
+	g_signal_connect(selection, "changed",
+			G_CALLBACK(&EmapContainer::on_selection_changedLv2), this);
 
-		scrolled->set_min_content_width(400);
-		scrolled->set_min_content_height(400);
+	std::cout << "connected tree and button signals." << std::endl;
 
-		path_container->attach(*scrolled, 0, 1, 4, 1);
+	gtk_table_attach(GTK_TABLE(button_container2), set_root_folder_button2, 0, 1,
+			0, 1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
+	gtk_table_attach(GTK_TABLE(button_container2), expand_all_button2, 1, 2, 0,
+			1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
+	gtk_table_attach(GTK_TABLE(button_container2), collapse_all_button2, 2, 3, 0,
+			1, (GtkAttachOptions)(GTK_SHRINK | GTK_FILL), GTK_SHRINK, 0, 0);
 
-		//finally add the container to the main window and show all children
-		add(*path_container);
+	//Setup the ScrolledWindow and add the TreeView in it
+	gtk_container_add((GtkContainer*) scrolled2, (GtkWidget*) treeview2);
 
-		//set a default size
-		//set_default_size(400, 400);
-		//gtk_window_set_default_size(GTK_WINDOW(emap), 400, 400);
+	gtk_table_attach(GTK_TABLE(container2), button_container2, 0, 1, 0, 1,
+			(GtkAttachOptions)(GTK_FILL | GTK_EXPAND), GTK_SHRINK, 0, 0);
 
-		//set up the root folder
-		passwd *pw = getpwuid(getuid());
-		home_dir = pw->pw_dir;
-		root_folder = home_dir;
+	gtk_table_attach_defaults(GTK_TABLE(container2), scrolled2, 0, 1, 1, 2);
 
-		std::fstream fbuf;
-		config_file = home_dir + "/.config/emap/rootdir.txt";
-		std::cout << "config file:" << config_file << std::endl;
+	gtk_container_add(GTK_CONTAINER(emap2), container2);
 
-		fbuf.open(config_file.c_str(),
-				std::ios::in | std::ios::out | std::ios::binary);
+	//set up the root folder
+	passwd *pw = getpwuid(getuid());
+	home_dir = pw->pw_dir;
+	root_folder = home_dir;
 
-		//set the root folder
-		if (!fbuf.is_open()) {
-			std::cout
-					<< "config file doesn't exist. create config file with default root folder: "
-					<< home_dir << std::endl;
-			set_root_folder(home_dir.c_str());
-		} else {
-			std::string line;
-			std::getline(fbuf, line);
-			root_folder = line;
-			std::cout << "config file exists.  set root_folder to: "
-					<< root_folder << std::endl;
-		}
+	std::fstream fbuf;
+	config_file = home_dir + "/.config/emap/rootdir.txt";
+	std::cout << "config file:" << config_file << std::endl;
 
-		Gtk::TreeModel::Row row;
+	fbuf.open(config_file.c_str(),
+			std::ios::in | std::ios::out | std::ios::binary);
 
-		//populate the tree
-		std::cout << "tree root folder: " << root_folder << std::endl;
-
-		loadTree(root_folder.c_str(), root_folder.c_str(), row);
-
-		show_all_children();
-
-		this->hide();
-
+	//set the root folder
+	if (!fbuf.is_open()) {
+		std::cout
+				<< "config file doesn't exist. create config file with default root folder: "
+				<< home_dir << std::endl;
+		set_root_folder(home_dir.c_str());
 	} else {
-
-		std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
-
-		GtkWindow* emap2 = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-		emap = emap2;
-
-		std::cout << "called gtk_window_new." << std::endl;
-
-		gtk_window_set_title(GTK_WINDOW(emap2),
-				"EMAP - Easy Midi Audio Production");
-
-		std::cout << "set title" << std::endl;
-
-		gtk_window_set_default_size(GTK_WINDOW(emap2), 400, 400);
-
-		std::cout << "set default window size" << std::endl;
-
-		container2 = gtk_grid_new();
-		std::cout << "made container" << std::endl;
-
-		GtkWidget* scrolled2 = gtk_scrolled_window_new(NULL, NULL); //hadj, vadj);
-		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled2),
-				GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-		gtk_scrolled_window_set_min_content_height(GTK_SCROLLED_WINDOW(scrolled2),400);
-		gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrolled2),400);
-		std::cout << "made scrolled2" << std::endl;
-
-		GtkWidget* treeview2 = gtk_tree_view_new();
-		std::cout << "made treeview2" << std::endl;
-
-		GtkWidget* set_root_folder_button2 = gtk_button_new_with_label(
-				"Set Root Folder");
-		std::cout << "made set_root_folder_button2" << std::endl;
-
-		GtkWidget* expand_all_button2 = gtk_button_new_with_label("Expand All");
-		std::cout << "made expand_all_button2" << std::endl;
-
-		GtkWidget* collapse_all_button2 = gtk_button_new_with_label(
-				"Collapse All");
-		std::cout << "made collapse_all_button2" << std::endl;
-
-		std::cout << "created EMAP base components." << std::endl;
-
-		//setup the TreeView
-		modelc = gtk_tree_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT,
-				G_TYPE_INT);
-		gtk_tree_view_set_model(GTK_TREE_VIEW(treeview2),
-				(GtkTreeModel*) modelc);
-
-		GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
-		GtkTreeViewColumn *column = gtk_tree_view_column_new_with_attributes("",
-				renderer, "text", TEXT_COLUMN, NULL);
-
-		gtk_tree_view_append_column(GTK_TREE_VIEW(treeview2), column);
-
-		//initialize the presets to NULL
-		this->m_cpresets = NULL;
-
-		std::cout << "made base tree model2." << std::endl;
-
-		//connect the signals
-		g_signal_connect(G_OBJECT(set_root_folder_button2), "clicked",
-				G_CALLBACK(&EmapContainer::on_button_clickedLv2), this);
-
-		g_signal_connect(expand_all_button2, "clicked",
-				G_CALLBACK(&EmapContainer::on_button_expand),
-				GTK_TREE_VIEW(treeview2));
-
-		g_signal_connect(collapse_all_button2, "clicked",
-				G_CALLBACK(&EmapContainer::on_button_collapse),
-				GTK_TREE_VIEW(treeview2));
-
-		selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview2));
-
-		g_signal_connect(selection, "changed",
-				G_CALLBACK(&EmapContainer::on_selection_changedLv2), this);
-
-		std::cout << "connected tree and button signals." << std::endl;
-
-		gtk_grid_attach(GTK_GRID(container2), set_root_folder_button2, 0, 0, 1,
-				1);
-		gtk_grid_attach(GTK_GRID(container2), expand_all_button2, 1, 0, 1, 1);
-
-		gtk_grid_attach(GTK_GRID(container2), collapse_all_button2, 2, 0, 1, 1);
-
-		//Setup the ScrolledWindow and add the TreeView to the scrolled window
-		gtk_container_add((GtkContainer*) scrolled2, (GtkWidget*) treeview2);
-
-		gtk_grid_attach(GTK_GRID(container2), scrolled2, 0, 1, 3, 1);
-
-		gtk_container_add(GTK_CONTAINER(emap2), container2);
-
-		//set up the root folder
-		passwd *pw = getpwuid(getuid());
-		home_dir = pw->pw_dir;
-		root_folder = home_dir;
-
-		std::fstream fbuf;
-		config_file = home_dir + "/.config/emap/rootdir.txt";
-		std::cout << "config file:" << config_file << std::endl;
-
-		fbuf.open(config_file.c_str(),
-				std::ios::in | std::ios::out | std::ios::binary);
-
-		//set the root folder
-		if (!fbuf.is_open()) {
-			std::cout
-					<< "config file doesn't exist. create config file with default root folder: "
-					<< home_dir << std::endl;
-			set_root_folder(home_dir.c_str());
-		} else {
-			std::string line;
-			std::getline(fbuf, line);
-			root_folder = line;
-			std::cout << "config file exists.  set root_folder to: "
-					<< root_folder << std::endl;
-		}
-
-		GtkTreeIter *row = NULL;
-
-		//populate the tree
-		std::cout << "tree root folder: " << root_folder << std::endl;
-
-		loadTreeLv2(root_folder.c_str(), root_folder.c_str(), row, modelc);
-
-		std::cout << "loaded initial tree" << std::endl;
-
-		gtk_widget_show_all(GTK_WIDGET(emap2));
+		std::string line;
+		std::getline(fbuf, line);
+		root_folder = line;
+		std::cout << "config file exists.  set root_folder to: " << root_folder
+				<< std::endl;
 	}
+
+	GtkTreeIter *row = NULL;
+
+	//populate the tree
+	std::cout << "tree root folder: " << root_folder << std::endl;
+
+	loadTreeLv2(root_folder.c_str(), root_folder.c_str(), row, modelc);
+
+	std::cout << "loaded initial tree" << std::endl;
+
+	gtk_widget_show_all(GTK_WIDGET(emap2));
+
 }
 
 EmapContainer::~EmapContainer() {
 	delete treeview;
-	delete path_container;
+	delete button_container2;
 	delete scrolled;
 }
 
@@ -997,8 +863,7 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 
 	std::cout << "on_selection_changed: " << std::endl;
 
-	Gtk::TreeModel::iterator iter =
-			treeview->get_selection()->get_selected();
+	Gtk::TreeModel::iterator iter = treeview->get_selection()->get_selected();
 	if (iter) //If anything is selected
 	{
 		Gtk::TreeModel::Row row = *iter;
@@ -1031,7 +896,8 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 
 			std::cout << "presets size before: " << presets.size() << std::endl;
 
-			std::cout << "presets count of "<< path << ": " << presets.count(path) << std::endl;
+			std::cout << "presets count of " << path << ": "
+					<< presets.count(path) << std::endl;
 
 			std::map<const Glib::ustring, int>::iterator it = presets.begin();
 
@@ -1118,7 +984,7 @@ static LV2UI_Handle instantiate(const _LV2UI_Descriptor * descriptor,
 	std::cout << "Allocated SourceGUI!" << std::endl;
 
 	//reparent the container to something the same default size as the standalone app
-	GtkWidget* new_parent = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);//gtk_vbox_new(false, 0);	////
+	GtkWidget* new_parent = gtk_vbox_new(false, 0);
 	gtk_widget_set_size_request(new_parent, 400, 400);
 	gtk_widget_reparent(GTK_WIDGET(emap->container2), new_parent);
 	gtk_widget_set_size_request(new_parent, 400, 400);

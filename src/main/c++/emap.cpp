@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtkmm/application.h>
+//#include <gtkmm/application.h>
 #include <stdio.h>
 #include <iostream>
 #include "fsynth.h"
 #include "container.h"
 
 int main(int argc, char *argv[]) {
-	Glib::RefPtr < Gtk::Application > app = Gtk::Application::create(argc, argv,
-			"org.gtkmm.examples.base");
+//	Glib::RefPtr < Gtk::Application > app = Gtk::Application::create(argc, argv,
+//			"org.gtkmm.examples.base");
 
 	//Connect the UI and the fluidsynth
 	FSynth fsynth(false, 0);
 	EmapContainer emap(fsynth.get_synth(), false);
+
+	gtk_main();
+	return 0;
+
 	std::cout << "Started EMAP: " << std::endl;
-	return app->run(emap);
+	//return app->run(emap);
 
 }
 
