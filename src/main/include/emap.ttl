@@ -65,7 +65,9 @@ emap:lv2
     ].
    
 emap:lv2ui
-    a ui:GtkUI ;
+#we have to swap between GtkUI and Gtk3UI depending on which version of Gtk we are using
+#Gtk3UI is for gtk3 and GtkUI is for everything else
+    a ui:Gtk3UI ;
     ui:binary <libemap-0.0.2-SNAPSHOT.so>;
     lv2:requiredFeature urid:map ;
         ui:portNotification [
