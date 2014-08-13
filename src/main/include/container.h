@@ -64,12 +64,7 @@ public:
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;
 
-	//Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button,
-	//		*collapse_all_button;
 	std::string root_folder, home_dir, config_file;
-	fluid_synth_t* synth; //the fluid synth instance
-	fluid_sfont_t* soundfont; //the loaded soundfont
-	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
 
 	struct cpresets {
 	public:
@@ -77,8 +72,6 @@ public:
 		const char* exists;
 		UT_hash_handle hh;
 	};
-
-	//struct cpresets* cpresets;
 	cpresets* m_cpresets;
 
 	struct sortstruct {
@@ -102,22 +95,15 @@ public:
 	};
 
 	//Signal handlers:
-	void on_button_clicked(EmapContainer* emap);
+	//void on_button_clicked(EmapContainer* emap);
 	void on_button_clickedLv2(EmapContainer* emap);
 	void on_button_quit();
 	void on_button_expand(GtkTreeView* treeview);
 	void on_button_collapse(GtkTreeView* treeview);
-	bool on_key_press_or_release_event(GdkEventKey* event);
-	bool on_key_press_or_release_event2(GtkTreeView *tree_view,
-			gpointer user_data);
-	void on_selection_changed(Gtk::TreeView* treeview);
 	void on_selection_changedLv2(GtkWidget *widget, gpointer treeview);
 	bool is_soundfont(const char * filename);
-	void loadTree(const char* orig_root_folder, const char* root_folder,
-			const Gtk::TreeModel::Row row);
 	void loadTreeLv2(const char* orig_path, const char* path, GtkTreeIter *row,
 			GtkTreeStore* model);
-	void set_root_folder(const char* root_folder);
 	void set_root_folderLv2(EmapContainer* emap);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
