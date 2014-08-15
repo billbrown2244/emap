@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//#include <gtkmm/application.h>
+/* NOTE:  This file is not used in the lv2 implementation.
 #include <stdio.h>
 #include <iostream>
 #include "fsynth.h"
 #include "container.h"
+
 
 int main(int argc, char *argv[]) {
 //	Glib::RefPtr < Gtk::Application > app = Gtk::Application::create(argc, argv,
@@ -34,4 +35,4 @@ int main(int argc, char *argv[]) {
 	//return app->run(emap);
 
 }
-
+*/

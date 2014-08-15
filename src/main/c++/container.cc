@@ -21,16 +21,7 @@
 
 #include "container.h"
 #include "fsynth.h"
-#include <gtkmm/window.h>
-#include <gtkmm/table.h>
-#include <gtkmm/scrolledwindow.h>
-#include <gtkmm/label.h>
-#include <gtkmm/entry.h>
-#include <gtkmm/button.h>
-#include <gtkmm/treeview.h>
-#include <gtkmm/treestore.h>
 #include <giomm/file.h>
-
 #include <fstream>
 #include <unistd.h>
 #include <sys/types.h>
@@ -43,7 +34,6 @@
 #include <fluidsynth.h>
 #include <misc.h>
 #include <iostream>
-#include "lv2.h"
 
 EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
