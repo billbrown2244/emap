@@ -48,6 +48,7 @@
 							<systemIncludePath>${shared.lib.path}/${gdkmmlib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${sigcpplib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${pangommlib}/include</systemIncludePath>
+							<systemIncludePath>${shared.lib.path}/${giommlib}/include</systemIncludePath>
 						</systemIncludePaths>
 					</cpp>
 					<libraries>
