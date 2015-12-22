@@ -1,8 +1,8 @@
 #ifndef LV2_H_
 #define LV2_H_
 
-#include "/usr/include/lv2-c++-tools/lv2.h"
-#include "/usr/include/lv2-c++-tools/lv2gui.hpp"
+#include "/usr/include/lv2.h"
+#include "/usr/lib/lv2/ui.lv2/ui.h"
 #include "/usr/lib/lv2/atom.lv2/atom.h"
 #include "/usr/lib/lv2/atom.lv2/util.h"
 #include "/usr/lib/lv2/atom.lv2/forge.h"

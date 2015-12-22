@@ -325,8 +325,6 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 
 	EmapContainer* emap = (EmapContainer*) data;
 
-	//struct cpresets* presets = emap->cpresets;
-
 	GtkTreeSelection* selection = emap->selection;
 
 	GtkTreeIter iter;
@@ -1120,7 +1118,9 @@ static LV2UI_Handle instantiate(const _LV2UI_Descriptor * descriptor,
 	//reparent the container to something the same default size as the standalone app
 	GtkWidget* new_parent = gtk_box_new(GTK_ORIENTATION_HORIZONTAL,0);//gtk_vbox_new(false, 0);	////
 	gtk_widget_set_size_request(new_parent, 400, 400);
-	gtk_widget_reparent(GTK_WIDGET(emap->container2), new_parent);
+	g_object_ref_sink(emap->container2);
+	gtk_container_remove (GTK_CONTAINER(emap->emap),GTK_WIDGET(emap->container2));
+	gtk_container_add (GTK_CONTAINER(new_parent),emap->container2);
 	gtk_widget_set_size_request(new_parent, 400, 400);
 
 	std::cout << "Creating UI!" << std::endl;
@@ -1150,14 +1150,14 @@ void EmapContainer::send_ui_state(EmapContainer* emap) {
 	forge = emap->forge;
 
 	//may need later
-	LV2_Atom* obj = (LV2_Atom*) lv2_atom_forge_resource(&emap->forge, &frame, 0,
+	LV2_Atom* cp = (LV2_Atom*) lv2_atom_forge_object(&emap->forge, &frame, 0,
 			emap->uris.ui_State);
 
 	std::cout << "allocated resource." << std::endl;
 
 	//send the loaded soundfont state back to the synth
 
-	LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_blank(&forge, &frame, 1,
+	LV2_Atom* msg = (LV2_Atom*) lv2_atom_forge_object(&forge, &frame, 1,
 			emap->uris.ui_State);
 
 	std::cout << "created message." << std::endl;

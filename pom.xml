@@ -50,6 +50,9 @@
 							<systemIncludePath>${shared.lib.path}/${pangommlib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${giommlib}/include</systemIncludePath>
 						</systemIncludePaths>
+						<options>
+                                <option>-std=c++11</option>
+                            </options>
 					</cpp>
 					<libraries>
 						<library>
@@ -149,7 +152,6 @@
 		<sigclib>sigc-2.0</sigclib>		
 		<sigcpplib>sigc++-2.0</sigcpplib>
 		<aol>amd64-Linux-gpp</aol>
-		<lv2devlib>lv2-c++-tools</lv2devlib>
 		<lv2lib>lv2/ui.lv2</lv2lib>
 		<gtklibshared>gtk-3</gtklibshared>
 		<atom>lv2/atom.lv2</atom>
@@ -163,6 +165,14 @@
 			<id>lv2</id>
 			<properties>
 			    <binaryType>shared</binaryType>
+			</properties>
+		</profile>
+		<profile>
+			<id>lv2-gtk2-ardour</id>
+			<properties>
+			    <binaryType>shared</binaryType>
+			    <!-- <gtklibshared>gtk-1.2</gtklibshared> -->
+			    <gtklib>gtk-2.0</gtklib>
 			</properties>
 		</profile>
 	</profiles>
