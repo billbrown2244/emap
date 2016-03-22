@@ -49,6 +49,9 @@
 							<systemIncludePath>${shared.lib.path}/${sigcpplib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${pangommlib}/include</systemIncludePath>
 						</systemIncludePaths>
+						<options>
+                            				<option>-std=c++11</option>
+                            			</options>
 					</cpp>
 					<libraries>
 						<library>
