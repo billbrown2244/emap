@@ -7,7 +7,8 @@
 #include "/usr/lib/lv2/midi.lv2/midi.h"
 #include "/usr/lib/lv2/urid.lv2/urid.h"
 #include "/usr/lib/lv2/parameters.lv2/parameters.h"
-#include "/usr/include/lv2.h"
+#include "/usr/include/lv2-c++-tools/lv2.h"
+#include "/usr/include/lv2-c++-tools/lv2_ui.h"
 
 #define EMAP_URI "http://www.colorfulsoftware.com/emap/lv2"
 #define EMAP_UI_URI "http://www.colorfulsoftware.com/emap/lv2ui"

@@ -24,7 +24,6 @@
 							<systemIncludePath>${shared.include.path}/${cairolib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${gtkmmlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${gdkmmlib}</systemIncludePath>
-							<systemIncludePath>${shared.include.path}/${gtklib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${giommlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${glibmmlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${fluidsynthlib}</systemIncludePath>
@@ -39,6 +38,7 @@
 							<systemIncludePath>${shared.include.path}/${atkmmlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${atklib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${lv2devlib}</systemIncludePath>
+							<systemIncludePath>${shared.include.path}/${gtklib}/</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${atom}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${midi}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${urid}</systemIncludePath>
@@ -48,6 +48,8 @@
 							<systemIncludePath>${shared.lib.path}/${gdkmmlib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${sigcpplib}/include</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${pangommlib}/include</systemIncludePath>
+							<systemIncludePath>${shared.lib.path}/${giommlib}/include</systemIncludePath>
+							<systemIncludePath>${shared.lib32.path}/${gtklib}/include</systemIncludePath>
 						</systemIncludePaths>
 						<options>
                             				<option>-std=c++11</option>
@@ -132,6 +134,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<shared.lib.path>/usr/lib</shared.lib.path>
+		<shared.lib32.path>/usr/lib</shared.lib32.path>
 		<shared.include.path>/usr/include</shared.include.path>
 		<!-- different for various software see the profiles -->
 		<gdkmmlib>gdkmm-3.0</gdkmmlib>

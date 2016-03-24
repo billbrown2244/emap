@@ -426,11 +426,17 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 	//get a list of file names for the current file "path"
 	Gio::init();
+
+	std::cout << "Gio::init called" << std::endl;
+	
 	Glib::RefPtr < Gio::File > file = Gio::File::create_for_path(path);
+	
+	std::cout << "file created" << std::endl;
+	
 	Glib::RefPtr < Gio::FileEnumerator > child_enumeration =
 			file->enumerate_children(G_FILE_ATTRIBUTE_STANDARD_NAME);
 
-	//std::cout << "setup enumeration" << std::endl;
+	std::cout << "setup enumeration" << std::endl;
 
 	//sort the file name since they aren't sorted by default
 	//child_enumeration = sortnames(child_enumeration);
@@ -475,7 +481,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 			//dont display the first folder in the result;
 			if (strcmp(orig_path, path) == 0) {
 
-				//std::cout << "same path" << std::endl;
+				std::cout << "same path" << std::endl;
 
 				gtk_tree_store_append(model, &child, NULL);	//new row
 
@@ -488,7 +494,7 @@ void EmapContainer::loadTreeLv2(const char* orig_path, const char* path,
 
 			} else {
 
-				//std::cout << "new path" << std::endl;
+				std::cout << "new path" << std::endl;
 
 				gtk_tree_store_append(model, &child, row);	//new
 				gtk_tree_store_set(model, &child, NAME, fileName.c_str(), PATH,
