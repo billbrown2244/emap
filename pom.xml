@@ -39,6 +39,7 @@
 							<systemIncludePath>${shared.include.path}/${atklib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${lv2devlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${gtklib}/</systemIncludePath>
+							<systemIncludePath>${shared.include.path}/${json-glib}/</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${atom}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${midi}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${urid}</systemIncludePath>
@@ -111,6 +112,11 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
+							<lib>
+								<name>${json-glib}</name>
+								<type>shared</type>
+								<directory>${shared.lib.path}</directory>
+							</lib>
 
 						</libs>
 					</linker>
@@ -166,6 +172,7 @@
 		<midi>lv2/midi.lv2</midi>
 		<urid>lv2/urid.lv2</urid>
 		<binaryType>executable</binaryType>
+		<json-glib>json-glib-1.0</json-glib>
 	</properties>
 
 	<profiles>
