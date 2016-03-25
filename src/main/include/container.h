@@ -121,7 +121,7 @@ public:
 			const Gtk::TreeModel::Row row);
 	void loadTreeLv2(const char* orig_path, const char* path, GtkTreeIter *row,
 			GtkTreeStore* model);
-	void set_root_folder(const char* root_folder);
+	void set_root_folder(const char* root_folder, const char* name, const char* path, int bank, int program);
 	void set_root_folderLv2(EmapContainer* emap);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);

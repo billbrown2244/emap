@@ -45,6 +45,8 @@
 #include <misc.h>
 #include <iostream>
 #include "lv2.h"
+#include <json-glib/json-glib.h>
+#include <json-glib/json-gobject.h>
 
 EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 
@@ -148,28 +150,37 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 		//set up the root folder
 		passwd *pw = getpwuid(getuid());
 		home_dir = pw->pw_dir;
-		root_folder = home_dir;
+		root_folder = home_dir + "/emap";
 
-		std::fstream fbuf;
-		config_file = home_dir + "/.config/emap/rootdir.txt";
-		std::cout << "config file:" << config_file << std::endl;
+		config_file = home_dir + "/.config/emap/emapconfig.json";
+		std::cout << "root foler: '" << root_folder
+			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience and issue."
+			<< std::endl;
 
-		fbuf.open(config_file.c_str(),
-				std::ios::in | std::ios::out | std::ios::binary);
-
-		//set the root folder
-		if (!fbuf.is_open()) {
-			std::cout
-					<< "config file doesn't exist. create config file with default root folder: "
-					<< home_dir << std::endl;
-			set_root_folder(home_dir.c_str());
+		JsonParser *parser = json_parser_new ();
+		bool file_exists = json_parser_load_from_file (parser,
+                            config_file.c_str(),
+                            NULL);
+    
+		if(file_exists){
+			JsonReader *reader = json_reader_new (json_parser_get_root (parser));
+			json_reader_read_member (reader, "rootdir");
+			root_folder = json_reader_get_string_value (reader);
+			json_reader_end_member (reader);
+			g_object_unref (reader);
+			std::cout << "config file exists.  set root_folder to: " << root_folder
+				<< std::endl;
 		} else {
-			std::string line;
-			std::getline(fbuf, line);
-			root_folder = line;
-			std::cout << "config file exists.  set root_folder to: "
-					<< root_folder << std::endl;
+			std::cout
+				<< "config file doesn't exist. create config file with default root folder: "
+				<< root_folder << std::endl;
+			name = "";
+			path = "";
+			bank = 0;
+			program = 0;
+			set_root_folder(root_folder.c_str(),name,path,bank,program);
 		}
+		g_object_unref (parser);
 
 		Gtk::TreeModel::Row row;
 
@@ -278,28 +289,33 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 		//set up the root folder
 		passwd *pw = getpwuid(getuid());
 		home_dir = pw->pw_dir;
-		root_folder = home_dir;
+		root_folder = home_dir + "/emap";
 
-		std::fstream fbuf;
-		config_file = home_dir + "/.config/emap/rootdir.txt";
-		std::cout << "config file:" << config_file << std::endl;
+		config_file = home_dir + "/.config/emap/emapconfig.json";
+		std::cout << "root foler: '" << root_folder
+			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience and issue."
+			<< std::endl;
 
-		fbuf.open(config_file.c_str(),
-				std::ios::in | std::ios::out | std::ios::binary);
-
-		//set the root folder
-		if (!fbuf.is_open()) {
-			std::cout
-					<< "config file doesn't exist. create config file with default root folder: "
-					<< home_dir << std::endl;
-			set_root_folder(home_dir.c_str());
+		JsonParser *parser = json_parser_new ();
+		bool file_exists = json_parser_load_from_file (parser,
+                            config_file.c_str(),
+                            NULL);
+    
+		if(file_exists){
+			JsonReader *reader = json_reader_new (json_parser_get_root (parser));
+			json_reader_read_member (reader, "rootdir");
+			root_folder = json_reader_get_string_value (reader);
+			json_reader_end_member (reader);
+			g_object_unref (reader);
+			std::cout << "config file exists.  set root_folder to: " << root_folder
+				<< std::endl;
 		} else {
-			std::string line;
-			std::getline(fbuf, line);
-			root_folder = line;
-			std::cout << "config file exists.  set root_folder to: "
-					<< root_folder << std::endl;
+			std::cout
+				<< "config file doesn't exist. create config file with default root folder: "
+				<< root_folder << std::endl;
+			set_root_folderLv2(this);
 		}
+		g_object_unref (parser);
 
 		GtkTreeIter *row = NULL;
 
@@ -330,8 +346,8 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 	GtkTreeIter iter;
 	GtkTreeIter* row = NULL;
 	GtkTreeModel * model;
-	char* name;
-	char* path;
+	char* name = "";
+	char* path = "";
 	int bank, program;
 
 	if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
@@ -512,7 +528,7 @@ void EmapContainer::on_button_clicked(EmapContainer* emap) {
 
 		emap->root_folder = dialog.get_filename();
 
-		set_root_folder(emap->root_folder.c_str());
+		set_root_folder(emap->root_folder.c_str(),emap->name, emap->path, emap->bank, emap->program);
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
@@ -900,35 +916,54 @@ bool EmapContainer::is_soundfont(const char * filename) {
 	return true;
 }
 
-void EmapContainer::set_root_folder(const char* root_folder) {
+void EmapContainer::set_root_folder(const char* root_folder, const char* name, const char* path, int bank, int program) {
 
+	std::cout << "set_root_folder" << std::endl;
 	//delete the existing file
 	std::remove(config_file.c_str());
 
-	//std::cout << "removed existing config file." << std::endl;
-
-	//create dir path if it doesn't exist
-	std::string dirs[] = { "/.config", "/emap" };
-
-	for (int i = 0; i <= 1; i++) {
-		const char* dir_path = (std::string(home_dir) + dirs[i]).c_str();
-		mkdir(dir_path, 0755);
-		//std::cout << "created directory path: " << dir_path << " " << mkdir_result
-		//		<< std::endl;
-		home_dir = dir_path;
-	}
-	//std::cout << "created directory path: " << home_dir << std::endl;
+	std::cout << "removed existing config file." << std::endl;
 
 	//write the new path to the file.
 	std::string path_contents = std::string(root_folder);
-	//std::cout << "root_folder:" << path_contents << std::endl;
+	std::cout << "root_folder:" << path_contents << std::endl;
+	struct stat st = {0};
+	if (stat(path_contents.c_str(), &st) == -1) {
+		mkdir(path_contents.c_str(), 0755);
+	}
+	
+	std::string sfname = std::string(name);
+	std::string sfpath = std::string(path);
+	std::string sfbank = std::to_string(bank);
+	std::string sfprogram = std::to_string(program);
+	
+	JsonBuilder *builder = json_builder_new ();
+	json_builder_begin_object (builder);
+	json_builder_set_member_name (builder, "rootdir");
+	json_builder_add_string_value (builder, path_contents.c_str());
+	json_builder_set_member_name (builder, "sfname");
+	json_builder_add_string_value (builder, sfname.c_str());
+	json_builder_set_member_name (builder, "sfpath");
+	json_builder_add_string_value (builder, sfpath.c_str());
+	json_builder_set_member_name (builder, "sfbank");
+	json_builder_add_string_value (builder, sfbank.c_str());
+	json_builder_set_member_name (builder, "sfprogram");
+	json_builder_add_string_value (builder, sfprogram.c_str());
+	json_builder_end_object (builder);
 
-	std::ofstream set_root_folder;
-	set_root_folder.open(config_file.c_str());
-	set_root_folder << path_contents;
-	set_root_folder.close();
+	std::cout << "built json object with path: " << path_contents << std::endl;
+	std::cout << "sfname2: " << sfname << std::endl;
+	std::cout << "sfpath2: " << sfpath << std::endl;
+	std::cout << "sfbank: " << sfbank << std::endl;
+	std::cout << "sfprogram: " << sfprogram << std::endl;
 
-	//std::cout << "wrote config file." << std::endl;
+	JsonGenerator *gen = json_generator_new ();
+	JsonNode * root = json_builder_get_root (builder);
+	json_generator_set_root (gen, root);
+	json_generator_to_file (gen, config_file.c_str(), NULL);
+	json_node_free (root);
+	g_object_unref (gen);
+	g_object_unref (builder);
 
 }
 
@@ -938,30 +973,39 @@ void EmapContainer::set_root_folderLv2(EmapContainer* emap) {
 	//delete the existing file
 	std::remove(emap->config_file.c_str());
 
-	//std::cout << "removed existing config file." << std::endl;
-
-	//create dir path if it doesn't exist
-	std::string dirs[] = { "/.config", "/emap" };
-
-	for (int i = 0; i <= 1; i++) {
-		const char* dir_path = (std::string(emap->home_dir) + dirs[i]).c_str();
-		mkdir(dir_path, 0755);
-		//std::cout << "created directory path: " << dir_path << " " << mkdir_result
-		//		<< std::endl;
-		emap->home_dir = dir_path;
-	}
-	//std::cout << "created directory path: " << home_dir << std::endl;
+	std::cout << "removed existing config file." << std::endl;
 
 	//write the new path to the file.
 	std::string path_contents = std::string(emap->root_folder);
-	//std::cout << "root_folder:" << path_contents << std::endl;
+	std::cout << "root_folder:" << path_contents << std::endl;
+	struct stat st = {0};
+	if (stat(path_contents.c_str(), &st) == -1) {
+		mkdir(path_contents.c_str(), 0755);
+	}
+	
+	JsonBuilder *builder = json_builder_new ();
+	json_builder_begin_object (builder);
+	json_builder_set_member_name (builder, "rootdir");
+	json_builder_add_string_value (builder, path_contents.c_str());
+	json_builder_set_member_name (builder, "sfname");
+	json_builder_add_string_value (builder, emap->name);
+	json_builder_set_member_name (builder, "sfpath");
+	json_builder_add_string_value (builder, emap->path);
+	json_builder_set_member_name (builder, "sfbank");
+	json_builder_add_string_value (builder, std::to_string(emap->bank).c_str());
+	json_builder_set_member_name (builder, "sfprogram");
+	json_builder_add_string_value (builder, std::to_string(emap->program).c_str());
+	json_builder_end_object (builder);
 
-	std::ofstream set_root_folder;
-	set_root_folder.open(emap->config_file.c_str());
-	set_root_folder << path_contents;
-	set_root_folder.close();
+	std::cout << "built json object:" << path_contents << std::endl;
 
-	//std::cout << "wrote config file." << std::endl;
+	JsonGenerator *gen = json_generator_new ();
+	JsonNode * root = json_builder_get_root (builder);
+	json_generator_set_root (gen, root);
+	json_generator_to_file (gen, emap->config_file.c_str(), NULL);
+	json_node_free (root);
+	g_object_unref (gen);
+	g_object_unref (builder);
 
 }
 
@@ -1062,6 +1106,12 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 			fluid_synth_program_reset(synth);
 			std::cout << "selection: " << filename << ", bank: " << bank
 					<< ", program: " << program << std::endl;
+		
+			this->name = std::string(filename).c_str();
+			this->path = std::string(path).c_str();
+			this->bank = bank;
+			this->program = program;
+		
 		}
 
 	}

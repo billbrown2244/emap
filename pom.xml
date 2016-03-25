@@ -39,6 +39,7 @@
 							<systemIncludePath>${shared.include.path}/${atkmmlib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${atklib}</systemIncludePath>
 							<systemIncludePath>${shared.include.path}/${lv2devlib}</systemIncludePath>
+							<systemIncludePath>${shared.include.path}/${json-glib}/</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${atom}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${midi}</systemIncludePath>
 							<systemIncludePath>${shared.lib.path}/${urid}</systemIncludePath>
@@ -108,7 +109,11 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
-							
+							<lib>
+								<name>${json-glib}</name>
+								<type>shared</type>
+								<directory>${shared.lib.path}</directory>
+							</lib>
 						</libs>
 					</linker>
 				</configuration>
@@ -158,21 +163,16 @@
 		<midi>lv2/midi.lv2</midi>
 		<urid>lv2/urid.lv2</urid>
 		<binaryType>executable</binaryType>
+		<json-glib>json-glib-1.0</json-glib>
 	</properties>
 
+	<!-- this lv2 profile is for the gtk3 version of the lib -->
+	<!-- see the gtk2-lv2 branch for the gtk2 version of the lv2 plugin -->
 	<profiles>
 		<profile>
 			<id>lv2</id>
 			<properties>
 			    <binaryType>shared</binaryType>
-			</properties>
-		</profile>
-		<profile>
-			<id>lv2-gtk2-ardour</id>
-			<properties>
-			    <binaryType>shared</binaryType>
-			    <!-- <gtklibshared>gtk-1.2</gtklibshared> -->
-			    <gtklib>gtk-2.0</gtklib>
 			</properties>
 		</profile>
 	</profiles>
