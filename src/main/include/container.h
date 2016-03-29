@@ -48,9 +48,9 @@ public:
 	static LV2UI_Descriptor descriptors[];
 
 	GtkWindow *emap;
-
-	const char* name;
 	const char* path;
+	const char* name;
+	const char* preset;
 	int bank, program;
 
 	//full
@@ -68,9 +68,7 @@ public:
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;
 
-	//Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button,
-	//		*collapse_all_button;
-	std::string root_folder, home_dir, config_file;
+	std::string root_folder, home_dir, config_file, filepath;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
 	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
@@ -121,10 +119,12 @@ public:
 			const Gtk::TreeModel::Row row);
 	void loadTreeLv2(const char* orig_path, const char* path, GtkTreeIter *row,
 			GtkTreeStore* model);
-	void set_root_folder(const char* root_folder, const char* name, const char* path, int bank, int program);
+	void set_root_folder(const char* root_folder);
 	void set_root_folderLv2(EmapContainer* emap);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
+	void save_state(const char* root_folder, const char* path, const char* preset, int bank, int program);
+	void save_stateLv2(EmapContainer* emap);
 
 protected:
 

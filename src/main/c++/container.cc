@@ -174,11 +174,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
 			std::cout
 				<< "config file doesn't exist. create config file with default root folder: "
 				<< root_folder << std::endl;
-			name = "";
-			path = "";
-			bank = 0;
-			program = 0;
-			set_root_folder(root_folder.c_str(),name,path,bank,program);
+			set_root_folder(root_folder.c_str());
 		}
 		g_object_unref (parser);
 
@@ -364,8 +360,7 @@ void EmapContainer::on_selection_changedLv2(GtkWidget *widget, gpointer data) {
 		if (is_soundfont(path) || (bank != -1 && program != -1)) {
 			std::cout << "name: " << name << " is a soundfont lets open it."
 					<< std::endl;
-
-			emap->name = name;
+					
 			emap->path = path;
 			emap->bank = bank;
 			emap->program = program;
@@ -528,7 +523,7 @@ void EmapContainer::on_button_clicked(EmapContainer* emap) {
 
 		emap->root_folder = dialog.get_filename();
 
-		set_root_folder(emap->root_folder.c_str(),emap->name, emap->path, emap->bank, emap->program);
+		set_root_folder(emap->root_folder.c_str());
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
@@ -916,7 +911,7 @@ bool EmapContainer::is_soundfont(const char * filename) {
 	return true;
 }
 
-void EmapContainer::set_root_folder(const char* root_folder, const char* name, const char* path, int bank, int program) {
+void EmapContainer::set_root_folder(const char* root_folder) {
 
 	std::cout << "set_root_folder" << std::endl;
 	//delete the existing file
@@ -932,39 +927,8 @@ void EmapContainer::set_root_folder(const char* root_folder, const char* name, c
 		mkdir(path_contents.c_str(), 0755);
 	}
 	
-	std::string sfname = std::string(name);
-	std::string sfpath = std::string(path);
-	std::string sfbank = std::to_string(bank);
-	std::string sfprogram = std::to_string(program);
+	save_state(root_folder,"","",-1,-1);
 	
-	JsonBuilder *builder = json_builder_new ();
-	json_builder_begin_object (builder);
-	json_builder_set_member_name (builder, "rootdir");
-	json_builder_add_string_value (builder, path_contents.c_str());
-	json_builder_set_member_name (builder, "sfname");
-	json_builder_add_string_value (builder, sfname.c_str());
-	json_builder_set_member_name (builder, "sfpath");
-	json_builder_add_string_value (builder, sfpath.c_str());
-	json_builder_set_member_name (builder, "sfbank");
-	json_builder_add_string_value (builder, sfbank.c_str());
-	json_builder_set_member_name (builder, "sfprogram");
-	json_builder_add_string_value (builder, sfprogram.c_str());
-	json_builder_end_object (builder);
-
-	std::cout << "built json object with path: " << path_contents << std::endl;
-	std::cout << "sfname2: " << sfname << std::endl;
-	std::cout << "sfpath2: " << sfpath << std::endl;
-	std::cout << "sfbank: " << sfbank << std::endl;
-	std::cout << "sfprogram: " << sfprogram << std::endl;
-
-	JsonGenerator *gen = json_generator_new ();
-	JsonNode * root = json_builder_get_root (builder);
-	json_generator_set_root (gen, root);
-	json_generator_to_file (gen, config_file.c_str(), NULL);
-	json_node_free (root);
-	g_object_unref (gen);
-	g_object_unref (builder);
-
 }
 
 void EmapContainer::set_root_folderLv2(EmapContainer* emap) {
@@ -988,16 +952,14 @@ void EmapContainer::set_root_folderLv2(EmapContainer* emap) {
 	json_builder_set_member_name (builder, "rootdir");
 	json_builder_add_string_value (builder, path_contents.c_str());
 	json_builder_set_member_name (builder, "sfname");
-	json_builder_add_string_value (builder, emap->name);
+	json_builder_add_string_value (builder, "");
 	json_builder_set_member_name (builder, "sfpath");
-	json_builder_add_string_value (builder, emap->path);
+	json_builder_add_string_value (builder, "");
 	json_builder_set_member_name (builder, "sfbank");
-	json_builder_add_string_value (builder, std::to_string(emap->bank).c_str());
+	json_builder_add_string_value (builder, "");
 	json_builder_set_member_name (builder, "sfprogram");
-	json_builder_add_string_value (builder, std::to_string(emap->program).c_str());
+	json_builder_add_string_value (builder, "");
 	json_builder_end_object (builder);
-
-	std::cout << "built json object:" << path_contents << std::endl;
 
 	JsonGenerator *gen = json_generator_new ();
 	JsonNode * root = json_builder_get_root (builder);
@@ -1055,17 +1017,15 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 		std::cout << "program " << program << std::endl;
 
 		if (is_soundfont(path.c_str())) {
-
+			
+			const Glib::ustring filepath = path.c_str();
+			this->filepath = filepath;
+			
 			std::cout << "is_soundfont " << std::endl;
 
 			fluid_synth_sfload(synth, path.c_str(), 1);
 
 			soundfont = fluid_synth_get_sfont(synth, 0);
-
-			if (bank == -1 && program == -1) {
-				std::cout << "selection: " << filename
-						<< ", load default bank and program." << std::endl;
-			}
 
 			std::cout << "soundfont name: " << path << std::endl;
 
@@ -1098,24 +1058,70 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 				presets[path] = 1;
 
 			}
-
+			//save the soundfont name to disk.
+			save_state(root_folder.c_str(), filepath.c_str(), "", -1, -1);
 		}
 		if (bank != -1 && program != -1) {
+			const Glib::ustring filepath = this->filepath;
 			fluid_synth_bank_select(synth, 0, bank);
 			fluid_synth_program_change(synth, 0, program);
 			fluid_synth_program_reset(synth);
 			std::cout << "selection: " << filename << ", bank: " << bank
 					<< ", program: " << program << std::endl;
-		
-			this->name = std::string(filename).c_str();
-			this->path = std::string(path).c_str();
-			this->bank = bank;
-			this->program = program;
+			
+			save_state(root_folder.c_str(), filepath.c_str(), filename.c_str(), bank, program);
 		
 		}
 
 	}
 
+}
+
+void EmapContainer::save_state(const char* root_folder, const char* path, const char* preset, int bank, int program){
+	
+	std::cout << "save state" << std::endl;
+	//delete the existing file
+	std::remove(config_file.c_str());
+
+	std::cout << "removed existing config file." << std::endl;
+
+	//write the new path to the file.
+	std::string path_contents = std::string(root_folder);
+	std::string sfpath = std::string(path);
+	std::string sfpreset = std::string(preset);
+	std::string sfbank = std::to_string(bank);
+	std::string sfprogram = std::to_string(program);
+	
+	JsonBuilder *builder = json_builder_new ();
+	json_builder_begin_object (builder);
+	json_builder_set_member_name (builder, "rootdir");
+	json_builder_add_string_value (builder, path_contents.c_str());
+	json_builder_set_member_name (builder, "sfpath");
+	json_builder_add_string_value (builder, sfpath.c_str());
+	json_builder_set_member_name (builder, "sfpreset");
+	json_builder_add_string_value (builder, sfpreset.c_str());
+	json_builder_set_member_name (builder, "sfbank");
+	json_builder_add_string_value (builder, sfbank.c_str());
+	json_builder_set_member_name (builder, "sfprogram");
+	json_builder_add_string_value (builder, sfprogram.c_str());
+	json_builder_end_object (builder);
+
+	std::cout << "save state to json with root_folder: " << path_contents << std::endl;
+	std::cout << "sfpath: " << sfpath << std::endl;
+	std::cout << "sfpreset: " << sfpreset << std::endl;
+	std::cout << "sfbank: " << sfbank << std::endl;
+	std::cout << "sfprogram: " << sfprogram << std::endl;
+
+	JsonGenerator *gen = json_generator_new ();
+	JsonNode * root = json_builder_get_root (builder);
+	json_generator_set_root (gen, root);
+	json_generator_to_file (gen, config_file.c_str(), NULL);
+	json_node_free (root);
+	g_object_unref (gen);
+	g_object_unref (builder);
+}
+void EmapContainer::save_stateLv2(EmapContainer* emap){
+	
 }
 
 //lv2 stuff
@@ -1259,6 +1265,8 @@ void EmapContainer::send_ui_state(EmapContainer* emap) {
 
 	std::cout << "wrote message" << std::endl;
 }
+
+
 
 static void cleanup(LV2UI_Handle ui) {
 	std::cout << "cleanup EMAP UI lv2" << std::endl;
