@@ -25,27 +25,12 @@
 #include <gtkmm.h>
 #include <fluidsynth.h>
 #include <gdk/gdkkeysyms.h>
-#include "lv2.h"
 #include "uthash.h"
 
 class EmapContainer: public Gtk::Window {
 public:
-	EmapContainer(fluid_synth_t* synth, bool is_lv2);
+	EmapContainer(fluid_synth_t* synth);
 	~EmapContainer();
-
-	// public lv2 stuff
-	const LV2_Atom_Sequence* control;
-	LV2_Atom_Sequence* notify;
-	LV2_Atom_Forge forge;
-	LV2_Atom_Forge_Frame frame;
-
-	LV2_URID_Map* map;
-	EMAPUris uris;
-
-	LV2UI_Write_Function write;
-	LV2UI_Controller controller;
-
-	static LV2UI_Descriptor descriptors[];
 
 	GtkWindow *emap;
 	const char* path;
@@ -105,7 +90,6 @@ public:
 
 	//Signal handlers:
 	void on_button_clicked(EmapContainer* emap);
-	void on_button_clickedLv2(EmapContainer* emap);
 	void on_button_quit();
 	void on_button_expand(GtkTreeView* treeview);
 	void on_button_collapse(GtkTreeView* treeview);
@@ -113,18 +97,13 @@ public:
 	bool on_key_press_or_release_event2(GtkTreeView *tree_view,
 			gpointer user_data);
 	void on_selection_changed(Gtk::TreeView* treeview);
-	void on_selection_changedLv2(GtkWidget *widget, gpointer treeview);
 	bool is_soundfont(const char * filename);
 	void loadTree(const char* orig_root_folder, const char* root_folder,
 			const Gtk::TreeModel::Row row);
-	void loadTreeLv2(const char* orig_path, const char* path, GtkTreeIter *row,
-			GtkTreeStore* model);
 	void set_root_folder(const char* root_folder);
-	void set_root_folderLv2(EmapContainer* emap);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
 	void save_state(const char* root_folder, const char* path, const char* preset, int bank, int program);
-	void save_stateLv2(EmapContainer* emap);
 
 protected:
 

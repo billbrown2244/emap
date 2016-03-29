@@ -22,7 +22,6 @@
 #ifndef FLUIDSYNTH_H_
 #define FLUIDSYNTH_H_
 
-#include "lv2.h"
 #include <fluidsynth.h>
 
 
@@ -30,7 +29,7 @@ class FSynth {
 
 public:
 
-	FSynth(bool is_lv2, double sample_rate);
+	FSynth(double sample_rate);
 	~FSynth();
 
 	fluid_synth_t* get_synth();

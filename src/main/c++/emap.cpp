@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
 			"org.gtkmm.examples.base");
 
 	//Connect the UI and the fluidsynth
-	FSynth fsynth(false, 0);
-	EmapContainer emap(fsynth.get_synth(), false);
+	FSynth fsynth(0);
+	EmapContainer emap(fsynth.get_synth());
 	std::cout << "Started EMAP: " << std::endl;
 	return app->run(emap);
 
