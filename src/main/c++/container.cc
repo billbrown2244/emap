@@ -79,7 +79,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 		treeview->set_model(model);
 
-		treeview->append_column("", columns.name);
+		treeview->append_column("", columns.label);
 
 		treeview->signal_key_press_event().connect(
 				sigc::mem_fun(this,
@@ -148,10 +148,10 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 		//set up the root folder
 		passwd *pw = getpwuid(getuid());
 		home_dir = pw->pw_dir;
-		root_folder = home_dir + "/emap";
+		rootdir = home_dir + "/emap";
 
 		config_file = home_dir + "/.config/emap/emapconfig.json";
-		std::cout << "root foler: '" << root_folder
+		std::cout << "root foler: '" << rootdir
 			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience and issue."
 			<< std::endl;
 
@@ -163,25 +163,25 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 		if(file_exists){
 			JsonReader *reader = json_reader_new (json_parser_get_root (parser));
 			json_reader_read_member (reader, "rootdir");
-			root_folder = json_reader_get_string_value (reader);
+			rootdir = json_reader_get_string_value (reader);
 			json_reader_end_member (reader);
 			g_object_unref (reader);
-			std::cout << "config file exists.  set root_folder to: " << root_folder
+			std::cout << "config file exists.  set root_folder to: " << rootdir
 				<< std::endl;
 		} else {
 			std::cout
 				<< "config file doesn't exist. create config file with default root folder: "
-				<< root_folder << std::endl;
-			set_root_folder(root_folder.c_str());
+				<< rootdir << std::endl;
+			set_root_folder(rootdir);
 		}
 		g_object_unref (parser);
 
 		Gtk::TreeModel::Row row;
 
 		//populate the tree
-		std::cout << "tree root folder: " << root_folder << std::endl;
+		std::cout << "tree root folder: " << rootdir << std::endl;
 
-		loadTree(root_folder.c_str(), root_folder.c_str(), row);
+		loadTree(rootdir, rootdir, row);
 
 		show_all_children();
 
@@ -201,9 +201,9 @@ void EmapContainer::on_button_clicked(EmapContainer* emap) {
 			Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
 	dialog.set_transient_for((Gtk::Window&) (*this->get_toplevel()));
 
-	std::cout << "root_folder before:  " << emap->root_folder << std::endl;
+	std::cout << "root_folder before:  " << emap->rootdir << std::endl;
 
-	dialog.set_current_folder(emap->root_folder);
+	dialog.set_current_folder(emap->rootdir);
 
 	//Add response buttons the the dialog:
 	dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
@@ -219,13 +219,13 @@ void EmapContainer::on_button_clicked(EmapContainer* emap) {
 
 		model->clear();
 
-		emap->root_folder = dialog.get_filename();
+		emap->rootdir = dialog.get_filename();
 
-		set_root_folder(emap->root_folder.c_str());
+		set_root_folder(emap->rootdir);
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
-		loadTree(emap->root_folder.c_str(), emap->root_folder.c_str(), row);
+		loadTree(emap->rootdir, emap->rootdir, row);
 
 		break;
 	}
@@ -257,7 +257,7 @@ void EmapContainer::on_button_collapse(GtkTreeView* treeview) {
 	gtk_tree_view_collapse_all(treeview);
 }
 
-void EmapContainer::loadTree(const char* orig_path, const char* path,
+void EmapContainer::loadTree(std::string orig_path, std::string path,
 		const Gtk::TreeModel::Row row) {
 	//std::cout << "orig_path: " << path << std::endl;
 	//std::cout << "path again: " << path << std::endl;
@@ -286,33 +286,33 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 		file_info = sorted[i];
 
 		//get the file name from the file_info object.
-		std::string fileName = file_info->get_name();
+		std::string label = file_info->get_name();
 
-		//std::cout << "fileName: " << fileName << std::endl;
+		//std::cout << "label: " << label << std::endl;
 
 		if (file_info->get_file_type() == Gio::FILE_TYPE_DIRECTORY) {
 
 			//std::cout << "found directory." << std::endl;
 
-			//std::cout << "found directory: " << fileName << std::endl;
+			//std::cout << "found directory: " << label << std::endl;
 			//std::cout << "in loadTree" << std::endl;
-			file_names.push_back(fileName);
+			file_names.push_back(label);
 
-			//std::cout << "in fileName: " << fileName << std::endl;
+			//std::cout << "in label: " << label << std::endl;
 
 			//now populate the TreeView
 			//Gtk::TreeModel::Row row = *(model->append());
 
-			char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
+			char result[strlen(path.c_str()) + strlen(label.c_str())]; // array to hold the result.
 
-			strcpy(result, path);
+			strcpy(result, path.c_str());
 			strcat(result, "/");
-			strcat(result, fileName.c_str());
+			strcat(result, label.c_str());
 
+			//std::cout << "filenName: " << label << std::endl;
 			//std::cout << "result: " << result << std::endl;
-
 			//dont display the first folder in the result;
-			if (strcmp(orig_path, path) == 0) {
+			if (strcmp(orig_path.c_str(), path.c_str()) == 0) {
 				//model.clear();
 				//std::cout << "orig path, reset model: " << model
 				//	<< std::endl;
@@ -321,9 +321,10 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 
 				Gtk::TreeModel::Row rowb = *(model->append());
 				//std::cout << "new row: " << rowb << std::endl;
-				rowb[columns.name] = fileName;
+				rowb[columns.rootdir] = orig_path;
 				rowb[columns.path] = result;
-				//std::cout << "result: " << result << std::endl;
+				rowb[columns.label] = label;
+				rowb[columns.preset] = "";
 				rowb[columns.bank] = -1;
 				rowb[columns.program] = -1;
 				//std::cout << "rowb: " << rowb << std::endl;
@@ -333,8 +334,13 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 				//std::cout << "paths are different: " << std::endl;
 
 				Gtk::TreeModel::Row rowb = *(model->append(row.children()));
-				rowb[columns.name] = fileName;
+				rowb[columns.rootdir] = orig_path;
 				rowb[columns.path] = result;
+				rowb[columns.label] = label;
+				rowb[columns.preset] = "";
+
+				//rowb[columns.path] = result;
+
 				//std::cout << "result: " << result << std::endl;
 				rowb[columns.bank] = -1;
 				rowb[columns.program] = -1;
@@ -346,17 +352,17 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 			}
 
 		} else {
-			char result[strlen(path) + strlen(fileName.c_str())]; // array to hold the result.
-			strcpy(result, path);
+			char result[strlen(path.c_str()) + strlen(label.c_str())]; // array to hold the result.
+			strcpy(result, path.c_str());
 			strcat(result, "/");
-			strcat(result, fileName.c_str());
+			strcat(result, label.c_str());
 
-			file_names.push_back(fileName);
+			file_names.push_back(label);
 
 			if (is_soundfont(result)) {
 
 				Gtk::TreeModel::Row rownew;
-				if (strcmp(orig_path, path) == 0) {
+				if (strcmp(orig_path.c_str(), path.c_str()) == 0) {
 
 					rownew = *(model->append());
 
@@ -365,8 +371,10 @@ void EmapContainer::loadTree(const char* orig_path, const char* path,
 					rownew = *(model->append(row.children()));
 
 				}
-				rownew[columns.name] = fileName;
+				rownew[columns.rootdir] = orig_path;
 				rownew[columns.path] = result;
+				rownew[columns.label] = label;
+				rownew[columns.preset] = "";
 				//std::cout << "result: " << result << std::endl;
 				rownew[columns.bank] = -1;
 				rownew[columns.program] = -1;
@@ -430,7 +438,7 @@ bool EmapContainer::is_soundfont(const char * filename) {
 	return true;
 }
 
-void EmapContainer::set_root_folder(const char* root_folder) {
+void EmapContainer::set_root_folder(std::string rootdir) {
 
 	std::cout << "set_root_folder" << std::endl;
 	//delete the existing file
@@ -439,23 +447,21 @@ void EmapContainer::set_root_folder(const char* root_folder) {
 	std::cout << "removed existing config file." << std::endl;
 
 	//write the new path to the file.
-	std::string path_contents = std::string(root_folder);
-	std::cout << "root_folder:" << path_contents << std::endl;
+	std::cout << "root_folder:" << rootdir << std::endl;
 	struct stat st = {0};
-	if (stat(path_contents.c_str(), &st) == -1) {
-		mkdir(path_contents.c_str(), 0755);
+	if (stat(rootdir.c_str(), &st) == -1) {
+		mkdir(rootdir.c_str(), 0755);
 	}
 	
-	save_state(root_folder,"","",-1,-1);
+	save_state(rootdir,"","","",-1,-1);
 	
 }
 
 bool EmapContainer::on_key_press_or_release_event(GdkEventKey* event) {
 
-	std::cout << "wrote config file." << std::endl;
-
 	//right arrow == expand
 	if (event->keyval == 65363) {
+		std::cout << "expand tree." << std::endl;
 		Gtk::TreeModel::iterator iter =
 				treeview->get_selection()->get_selected();
 		Gtk::TreePath path = model->get_path(iter);
@@ -466,6 +472,7 @@ bool EmapContainer::on_key_press_or_release_event(GdkEventKey* event) {
 
 	//left arrow == collapse
 	if (event->keyval == 65361) {
+		std::cout << "collapse tree." << std::endl;
 		Gtk::TreeModel::iterator iter =
 				treeview->get_selection()->get_selected();
 		Gtk::TreePath path = model->get_path(iter);
@@ -485,34 +492,31 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 	if (iter) //If anything is selected
 	{
 		Gtk::TreeModel::Row row = *iter;
-		const Glib::ustring filename = row[columns.name];
+		const Glib::ustring rootdir = row[columns.rootdir];
 		const Glib::ustring path = row[columns.path];
+		const Glib::ustring label = row[columns.label];
+		const Glib::ustring preset = row[columns.preset];
 		const int bank = row[columns.bank];
 		const int program = row[columns.program];
 
-		std::cout << "filename " << filename << std::endl;
+		std::cout << "rootdir " << rootdir << std::endl;
 		std::cout << "path " << path << std::endl;
+		std::cout << "label " << label << std::endl;
+		std::cout << "preset " << preset << std::endl;
 		std::cout << "bank " << bank << std::endl;
 		std::cout << "program " << program << std::endl;
 
+		save_state(rootdir, path, label, preset, bank, program);
+
 		if (is_soundfont(path.c_str())) {
-			
-			const Glib::ustring filepath = path.c_str();
-			this->filepath = filepath;
-			
-			std::cout << "is_soundfont " << std::endl;
+
+			std::cout << "found soundfont name: " << path << std::endl;
 
 			fluid_synth_sfload(synth, path.c_str(), 1);
 
 			soundfont = fluid_synth_get_sfont(synth, 0);
 
-			std::cout << "soundfont name: " << path << std::endl;
-
 			soundfont->iteration_start(soundfont);
-
-			std::cout << "presets size before: " << presets.size() << std::endl;
-
-			std::cout << "presets count of "<< path << ": " << presets.count(path) << std::endl;
 
 			std::map<const Glib::ustring, int>::iterator it = presets.begin();
 
@@ -528,8 +532,10 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 					Gtk::TreeModel::Row rownew = *iter;
 					Gtk::TreeModel::Row rowp = *(model->append(
 							rownew.children()));
-					rowp[columns.name] = Glib::ustring(preset_name);
-					rowp[columns.path] = Glib::ustring(preset_name);
+					rowp[columns.rootdir] = rootdir;
+					rowp[columns.path] = path;
+					rowp[columns.label] = Glib::ustring(preset_name);
+					rowp[columns.preset] = Glib::ustring(preset_name);
 					rowp[columns.bank] = iBank;
 					rowp[columns.program] = iProg;
 
@@ -537,59 +543,49 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 				presets[path] = 1;
 
 			}
-			//save the soundfont name to disk.
-			save_state(root_folder.c_str(), filepath.c_str(), "", -1, -1);
 		}
 		if (bank != -1 && program != -1) {
-			const Glib::ustring filepath = this->filepath;
 			fluid_synth_bank_select(synth, 0, bank);
 			fluid_synth_program_change(synth, 0, program);
 			fluid_synth_program_reset(synth);
-			std::cout << "selection: " << filename << ", bank: " << bank
+			std::cout << "selection: " << label << ", bank: " << bank
 					<< ", program: " << program << std::endl;
 			
-			save_state(root_folder.c_str(), filepath.c_str(), filename.c_str(), bank, program);
-		
 		}
 
 	}
-
 }
 
-void EmapContainer::save_state(const char* root_folder, const char* path, const char* preset, int bank, int program){
+void EmapContainer::save_state(std::string rootdir, std::string path, std::string label, std::string preset, int bank, int program){
 	
 	std::cout << "save state" << std::endl;
 	//delete the existing file
 	std::remove(config_file.c_str());
 
 	std::cout << "removed existing config file." << std::endl;
-
-	//write the new path to the file.
-	std::string path_contents = std::string(root_folder);
-	std::string sfpath = std::string(path);
-	std::string sfpreset = std::string(preset);
-	std::string sfbank = std::to_string(bank);
-	std::string sfprogram = std::to_string(program);
 	
 	JsonBuilder *builder = json_builder_new ();
 	json_builder_begin_object (builder);
 	json_builder_set_member_name (builder, "rootdir");
-	json_builder_add_string_value (builder, path_contents.c_str());
-	json_builder_set_member_name (builder, "sfpath");
-	json_builder_add_string_value (builder, sfpath.c_str());
-	json_builder_set_member_name (builder, "sfpreset");
-	json_builder_add_string_value (builder, sfpreset.c_str());
-	json_builder_set_member_name (builder, "sfbank");
-	json_builder_add_string_value (builder, sfbank.c_str());
-	json_builder_set_member_name (builder, "sfprogram");
-	json_builder_add_string_value (builder, sfprogram.c_str());
+	json_builder_add_string_value (builder, rootdir.c_str());
+	json_builder_set_member_name (builder, "path");
+	json_builder_add_string_value (builder, path.c_str());
+	json_builder_set_member_name (builder, "label");
+	json_builder_add_string_value (builder, label.c_str());
+	json_builder_set_member_name (builder, "preset");
+	json_builder_add_string_value (builder, preset.c_str());
+	json_builder_set_member_name (builder, "bank");
+	json_builder_add_string_value (builder, std::to_string(bank).c_str());
+	json_builder_set_member_name (builder, "program");
+	json_builder_add_string_value (builder, std::to_string(program).c_str());
 	json_builder_end_object (builder);
 
-	std::cout << "save state to json with root_folder: " << path_contents << std::endl;
-	std::cout << "sfpath: " << sfpath << std::endl;
-	std::cout << "sfpreset: " << sfpreset << std::endl;
-	std::cout << "sfbank: " << sfbank << std::endl;
-	std::cout << "sfprogram: " << sfprogram << std::endl;
+	std::cout << "save state to json with rootdir: " << rootdir << std::endl;
+	std::cout << "path: " << path << std::endl;
+	std::cout << "label: " << label << std::endl;
+	std::cout << "preset: " << preset << std::endl;
+	std::cout << "bank: " << bank << std::endl;
+	std::cout << "program: " << program << std::endl;
 
 	JsonGenerator *gen = json_generator_new ();
 	JsonNode * root = json_builder_get_root (builder);

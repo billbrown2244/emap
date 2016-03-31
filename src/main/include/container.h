@@ -33,19 +33,12 @@ public:
 	~EmapContainer();
 
 	GtkWindow *emap;
-	const char* path;
-	const char* name;
-	const char* preset;
-	int bank, program;
+	int bank = -1, program = -1;
 
 	//full
 	Gtk::Grid* path_container;
 	Gtk::ScrolledWindow *scrolled;
 	Gtk::TreeView *treeview;
-
-	//lv2
-	GtkWidget* container2;
-	GtkTreeSelection* selection;
 
 	Gtk::Button *set_root_folder_button, *quit_button, *expand_all_button,
 			*collapse_all_button;
@@ -53,7 +46,7 @@ public:
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;
 
-	std::string root_folder, home_dir, config_file, filepath;
+	std::string rootdir, home_dir, config_file, path, label, preset;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
 	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
@@ -85,7 +78,7 @@ public:
 	};
 
 	enum {
-		NAME, PATH, BANK, PROGRAM
+		ROOTDIR, PATH, LABEL, PRESET, BANK, PROGRAM
 	};
 
 	//Signal handlers:
@@ -98,12 +91,13 @@ public:
 			gpointer user_data);
 	void on_selection_changed(Gtk::TreeView* treeview);
 	bool is_soundfont(const char * filename);
-	void loadTree(const char* orig_root_folder, const char* root_folder,
+	void loadTree(std::string orig_rootdir, std::string rootdir,
 			const Gtk::TreeModel::Row row);
-	void set_root_folder(const char* root_folder);
+	void set_root_folder(std::string rootdir);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
-	void save_state(const char* root_folder, const char* path, const char* preset, int bank, int program);
+	void save_state(std::string rootdir, std::string path, std::string label,
+			std::string preset, int bank, int program);
 
 protected:
 
@@ -114,14 +108,18 @@ protected:
 	class ModelColumns: public Gtk::TreeModel::ColumnRecord {
 	public:
 		ModelColumns() {
-			add(name);
+			add(rootdir);
 			add(path);
+			add(label); //Label in UI
+			add(preset);
 			add(bank);
 			add(program);
 		}
 
-		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<Glib::ustring> rootdir;
 		Gtk::TreeModelColumn<Glib::ustring> path;
+		Gtk::TreeModelColumn<Glib::ustring> label;
+		Gtk::TreeModelColumn<Glib::ustring> preset;
 		Gtk::TreeModelColumn<int> bank;
 		Gtk::TreeModelColumn<int> program;
 	};
