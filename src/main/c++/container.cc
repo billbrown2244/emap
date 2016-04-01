@@ -95,7 +95,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 		//connect the signals
 		set_root_folder_button->signal_clicked().connect(
 				sigc::bind<EmapContainer*>(
-						sigc::mem_fun(*this, &EmapContainer::on_button_clicked),
+						sigc::mem_fun(*this, &EmapContainer::on_button_rootdir),
 						this));
 
 		quit_button->signal_clicked().connect(
@@ -152,7 +152,7 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 		config_file = home_dir + "/.config/emap/emapconfig.json";
 		std::cout << "root foler: '" << rootdir
-			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience and issue."
+			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience a startup issue."
 			<< std::endl;
 
 		JsonParser *parser = json_parser_new ();
@@ -168,11 +168,14 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 			g_object_unref (reader);
 			std::cout << "config file exists.  set root_folder to: " << rootdir
 				<< std::endl;
+			//maybe use either of these to load current place.
+			//gtk_tree_view_expand_row (GtkTreeView *tree_view, GtkTreePath *path, gboolean open_all);
+			//gtk_tree_view_expand_to_path (GtkTreeView *tree_view, GtkTreePath *path);
 		} else {
 			std::cout
 				<< "config file doesn't exist. create config file with default root folder: "
 				<< rootdir << std::endl;
-			set_root_folder(rootdir);
+			save_state(rootdir,"","","",-1,-1);
 		}
 		g_object_unref (parser);
 
@@ -195,7 +198,7 @@ EmapContainer::~EmapContainer() {
 	delete scrolled;
 }
 
-void EmapContainer::on_button_clicked(EmapContainer* emap) {
+void EmapContainer::on_button_rootdir(EmapContainer* emap) {
 	std::cout << "Set Root Folder" << std::endl;
 	Gtk::FileChooserDialog dialog("Please choose a folder",
 			Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
@@ -221,7 +224,7 @@ void EmapContainer::on_button_clicked(EmapContainer* emap) {
 
 		emap->rootdir = dialog.get_filename();
 
-		set_root_folder(emap->rootdir);
+		save_state(emap->rootdir,"","","",-1,-1);
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
@@ -438,25 +441,6 @@ bool EmapContainer::is_soundfont(const char * filename) {
 	return true;
 }
 
-void EmapContainer::set_root_folder(std::string rootdir) {
-
-	std::cout << "set_root_folder" << std::endl;
-	//delete the existing file
-	std::remove(config_file.c_str());
-
-	std::cout << "removed existing config file." << std::endl;
-
-	//write the new path to the file.
-	std::cout << "root_folder:" << rootdir << std::endl;
-	struct stat st = {0};
-	if (stat(rootdir.c_str(), &st) == -1) {
-		mkdir(rootdir.c_str(), 0755);
-	}
-	
-	save_state(rootdir,"","","",-1,-1);
-	
-}
-
 bool EmapContainer::on_key_press_or_release_event(GdkEventKey* event) {
 
 	//right arrow == expand
@@ -506,8 +490,6 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 		std::cout << "bank " << bank << std::endl;
 		std::cout << "program " << program << std::endl;
 
-		save_state(rootdir, path, label, preset, bank, program);
-
 		if (is_soundfont(path.c_str())) {
 
 			std::cout << "found soundfont name: " << path << std::endl;
@@ -548,11 +530,13 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 			fluid_synth_bank_select(synth, 0, bank);
 			fluid_synth_program_change(synth, 0, program);
 			fluid_synth_program_reset(synth);
-			std::cout << "selection: " << label << ", bank: " << bank
-					<< ", program: " << program << std::endl;
+			
 			
 		}
 
+		std::cout << "selection: " << label << ", bank: " << bank
+					<< ", program: " << program << std::endl;
+		save_state(rootdir, path, label, preset, bank, program);
 	}
 }
 
@@ -563,6 +547,13 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 	std::remove(config_file.c_str());
 
 	std::cout << "removed existing config file." << std::endl;
+	
+	std::cout << "create rootfolder if it doesn't exist: " << rootdir << std::endl;
+	
+	struct stat st = {0};
+	if (stat(rootdir.c_str(), &st) == -1) {
+		mkdir(rootdir.c_str(), 0755);
+	}
 	
 	JsonBuilder *builder = json_builder_new ();
 	json_builder_begin_object (builder);
@@ -580,7 +571,7 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 	json_builder_add_string_value (builder, std::to_string(program).c_str());
 	json_builder_end_object (builder);
 
-	std::cout << "save state to json with rootdir: " << rootdir << std::endl;
+	std::cout << "save state to json fie: with rootdir: " << rootdir << std::endl;
 	std::cout << "path: " << path << std::endl;
 	std::cout << "label: " << label << std::endl;
 	std::cout << "preset: " << preset << std::endl;

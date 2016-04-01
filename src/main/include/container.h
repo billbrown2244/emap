@@ -82,7 +82,7 @@ public:
 	};
 
 	//Signal handlers:
-	void on_button_clicked(EmapContainer* emap);
+	void on_button_rootdir(EmapContainer* emap);
 	void on_button_quit();
 	void on_button_expand(GtkTreeView* treeview);
 	void on_button_collapse(GtkTreeView* treeview);
