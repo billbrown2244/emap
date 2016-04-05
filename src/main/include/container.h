@@ -46,7 +46,7 @@ public:
 	Glib::RefPtr<Gtk::TreeStore> model;
 	GtkTreeStore* modelc;
 
-	std::string rootdir, home_dir, config_file, path, label, preset;
+	std::string rootdir, home_dir, config_file, path, label, preset, nodepath;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
 	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
@@ -96,7 +96,7 @@ public:
 	void set_root_folder(std::string rootdir);
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
-	void save_state(std::string rootdir, std::string path, std::string label,
+	void save_state(std::string rootdir, std::string path, std::string nodepath, std::string label,
 			std::string preset, int bank, int program);
 
 protected:

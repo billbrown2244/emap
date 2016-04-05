@@ -165,17 +165,39 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 			json_reader_read_member (reader, "rootdir");
 			rootdir = json_reader_get_string_value (reader);
 			json_reader_end_member (reader);
+			json_reader_read_member (reader, "path");
+			path = json_reader_get_string_value (reader);
+			//nodepath "2:4" refers to the fifth child of the third node.
+			json_reader_end_member (reader);
+			json_reader_read_member (reader, "nodepath");
+			nodepath = json_reader_get_string_value (reader);
+			json_reader_end_member (reader);
+			json_reader_read_member (reader, "label");
+			label = json_reader_get_string_value (reader);
+			json_reader_end_member (reader);
+			json_reader_read_member (reader, "preset");
+			preset = json_reader_get_string_value (reader);
+			json_reader_end_member (reader);
+			json_reader_read_member (reader, "bank");
+			bank = atoi(json_reader_get_string_value (reader));
+			json_reader_end_member (reader);
+			json_reader_read_member (reader, "program");
+			program = atoi(json_reader_get_string_value (reader));
+			json_reader_end_member (reader);
 			g_object_unref (reader);
-			std::cout << "config file exists.  set root_folder to: " << rootdir
-				<< std::endl;
-			//maybe use either of these to load current place.
-			//gtk_tree_view_expand_row (GtkTreeView *tree_view, GtkTreePath *path, gboolean open_all);
-			//gtk_tree_view_expand_to_path (GtkTreeView *tree_view, GtkTreePath *path);
+			std::cout << "config file exists.  Restore state from: " << std::endl;
+			std::cout << "rootdir: " << rootdir << std::endl;
+			std::cout << "path: " << path << std::endl;
+			std::cout << "nodepath: " << nodepath << std::endl;
+			std::cout << "label: " << label << std::endl;
+			std::cout << "preset: " << preset << std::endl;
+			std::cout << "bank: " << bank << std::endl;
+			std::cout << "program: " << program << std::endl;
 		} else {
 			std::cout
 				<< "config file doesn't exist. create config file with default root folder: "
 				<< rootdir << std::endl;
-			save_state(rootdir,"","","",-1,-1);
+			save_state(rootdir,"","","","",-1,-1);
 		}
 		g_object_unref (parser);
 
@@ -187,7 +209,23 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 		loadTree(rootdir, rootdir, row);
 
 		show_all_children();
-
+		
+		
+		if(file_exists){
+			//maybe use either of these to load current place.
+			Gtk::TreePath treepath(nodepath);
+			treeview->expand_to_path(treepath);
+			std::cout << "expanded to nodepath: " << nodepath << std::endl;
+			treeview->expand_row(treepath, true);
+			fluid_synth_sfload(synth, path.c_str(), 1);
+			fluid_synth_bank_select(synth, 0, bank);
+			fluid_synth_program_change(synth, 0, program);
+			fluid_synth_program_reset(synth);
+			//gtk_tree_view_expand_row (GtkTreeView *tree_view, GtkTreePath *path, gboolean open_all);
+			//gtk_tree_view_expand_to_path (GtkTreeView *tree_view, GtkTreePath *path);
+		}
+		
+		
 		this->hide();
 
 }
@@ -224,7 +262,7 @@ void EmapContainer::on_button_rootdir(EmapContainer* emap) {
 
 		emap->rootdir = dialog.get_filename();
 
-		save_state(emap->rootdir,"","","",-1,-1);
+		save_state(emap->rootdir,"","","","",-1,-1);
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
@@ -473,6 +511,10 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 
 	Gtk::TreeModel::iterator iter =
 			treeview->get_selection()->get_selected();
+			
+	Gtk::TreePath treepath = model->get_path(iter);		
+	nodepath = treepath.to_string();
+	
 	if (iter) //If anything is selected
 	{
 		Gtk::TreeModel::Row row = *iter;
@@ -536,11 +578,11 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 
 		std::cout << "selection: " << label << ", bank: " << bank
 					<< ", program: " << program << std::endl;
-		save_state(rootdir, path, label, preset, bank, program);
+		save_state(rootdir, path, nodepath, label, preset, bank, program);
 	}
 }
 
-void EmapContainer::save_state(std::string rootdir, std::string path, std::string label, std::string preset, int bank, int program){
+void EmapContainer::save_state(std::string rootdir, std::string path, std::string nodepath, std::string label, std::string preset, int bank, int program){
 	
 	std::cout << "save state" << std::endl;
 	//delete the existing file
@@ -561,6 +603,8 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 	json_builder_add_string_value (builder, rootdir.c_str());
 	json_builder_set_member_name (builder, "path");
 	json_builder_add_string_value (builder, path.c_str());
+	json_builder_set_member_name (builder, "nodepath");
+	json_builder_add_string_value (builder, nodepath.c_str());
 	json_builder_set_member_name (builder, "label");
 	json_builder_add_string_value (builder, label.c_str());
 	json_builder_set_member_name (builder, "preset");
@@ -573,6 +617,7 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 
 	std::cout << "save state to json fie: with rootdir: " << rootdir << std::endl;
 	std::cout << "path: " << path << std::endl;
+	std::cout << "node: " << path << std::endl;
 	std::cout << "label: " << label << std::endl;
 	std::cout << "preset: " << preset << std::endl;
 	std::cout << "bank: " << bank << std::endl;
