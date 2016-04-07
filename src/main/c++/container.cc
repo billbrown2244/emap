@@ -210,17 +210,106 @@ EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 		show_all_children();
 		
-		
+		//https://developer.gnome.org/gtkmm-tutorial/stable/sec-treeview-selection.html.en/
 		if(file_exists){
-			//maybe use either of these to load current place.
-			Gtk::TreePath treepath(nodepath);
-			treeview->expand_to_path(treepath);
-			std::cout << "expanded to nodepath: " << nodepath << std::endl;
-			treeview->expand_row(treepath, true);
+			Glib::RefPtr<Gtk::TreeSelection> treeSelection =
+    treeview->get_selection();
+			
+		std::string localnodepath = nodepath;	
+		
+		std::cout << "localnodepath: " << localnodepath << std::endl;
+		
+std::string delimiter = ":";
+Gtk::TreeModel::Row row2;
+size_t pos = 0;
+std::string token;
+
+if((pos = localnodepath.find(delimiter)) != std::string::npos){
+	token = localnodepath.substr(0, pos);
+	
+	std::cout << "token initial: " << token << std::endl;
+	
+	row2 = model->children()[stoi(token)]; //The token row.
+	if(row2){
+		treeSelection->select(row2);
+		Gtk::TreeModel::iterator iter =
+		treeSelection->get_selected();
+		Gtk::TreePath tpath = model->get_path(iter);
+		treeview->expand_row(tpath, false);
+		
+		localnodepath.erase(0, pos + delimiter.length());
+		
+		do {
+			pos = localnodepath.find(delimiter);
+			
+			token = localnodepath.substr(0, pos);
+			
+			std::cout << "token again: " << token << std::endl;
+			
+			Gtk::TreeModel::Row row3 = row2->children()[stoi(token)]; //The token row.
+			treeSelection->select(row3);
+			Gtk::TreeModel::iterator iter =
+			treeSelection->get_selected();
+			Gtk::TreePath tpath2 = model->get_path(iter);
+			treeview->expand_row(tpath2, false);
+			
+			localnodepath.erase(0, pos + delimiter.length());
+			
+		}while(pos != std::string::npos);
+		
+		if(path.compare("") != 0){
+			//load the soundfont preset
 			fluid_synth_sfload(synth, path.c_str(), 1);
 			fluid_synth_bank_select(synth, 0, bank);
 			fluid_synth_program_change(synth, 0, program);
 			fluid_synth_program_reset(synth);
+		}
+		
+	}
+}else {
+	if(localnodepath.compare("") != 0){
+		row2 = model->children()[stoi(localnodepath)]; //The token row.
+		if(row2){
+			treeSelection->select(row2);
+		}
+	}
+}
+
+/*
+size_t pos = 0;
+std::string token;
+while ((pos = nodepath.find(delimiter)) != std::string::npos) {
+    token = nodepath.substr(0, pos);
+    
+    Gtk::TreeModel::Row row2 = model->children()[stoi(token)]; //The token row.
+    
+    nodepath.erase(0, pos + delimiter.length());
+    
+    s.find(delimiter)) != std::string::npos
+}
+*/
+			
+/*		
+Gtk::TreeModel::Row row2 = model->children()[stoi(token)]; //The token row.
+if(row2){
+  treeSelection->select(row2);
+  Gtk::TreeModel::iterator iter =
+				treeSelection->get_selected();
+		Gtk::TreePath path = model->get_path(iter);
+		treeview->expand_row(path, false);
+		
+Gtk::TreeModel::Row row3= row2->children()[2];
+if(row3){
+	treeSelection->select(row3);
+	
+}
+	}
+*/	
+
+			//maybe use either of these to load current place.
+			
+			
+			
 			//gtk_tree_view_expand_row (GtkTreeView *tree_view, GtkTreePath *path, gboolean open_all);
 			//gtk_tree_view_expand_to_path (GtkTreeView *tree_view, GtkTreePath *path);
 		}
@@ -527,6 +616,7 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 
 		std::cout << "rootdir " << rootdir << std::endl;
 		std::cout << "path " << path << std::endl;
+		std::cout << "nodepath " << nodepath << std::endl;
 		std::cout << "label " << label << std::endl;
 		std::cout << "preset " << preset << std::endl;
 		std::cout << "bank " << bank << std::endl;
@@ -617,7 +707,7 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 
 	std::cout << "save state to json fie: with rootdir: " << rootdir << std::endl;
 	std::cout << "path: " << path << std::endl;
-	std::cout << "node: " << path << std::endl;
+	std::cout << "nodepath: " << nodepath << std::endl;
 	std::cout << "label: " << label << std::endl;
 	std::cout << "preset: " << preset << std::endl;
 	std::cout << "bank: " << bank << std::endl;
