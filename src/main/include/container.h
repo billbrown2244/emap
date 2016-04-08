@@ -44,9 +44,8 @@ public:
 			*collapse_all_button;
 
 	Glib::RefPtr<Gtk::TreeStore> model;
-	GtkTreeStore* modelc;
 
-	std::string rootdir, home_dir, config_file, path, label, preset, nodepath;
+	std::string rootdir, home_dir, config_file, path, label, nodepath;
 	fluid_synth_t* synth; //the fluid synth instance
 	fluid_sfont_t* soundfont; //the loaded soundfont
 	std::map<const Glib::ustring, int> presets; //map for holding build out presets.
@@ -97,7 +96,8 @@ public:
 	void send_ui_state(EmapContainer* emap);
 	void send_ui_disable(EmapContainer* emap);
 	void save_state(std::string rootdir, std::string path, std::string nodepath, std::string label,
-			std::string preset, int bank, int program);
+			int bank, int program);
+	Glib::RefPtr<Gtk::TreeSelection> setupDisplay(std::string nodepath, std::string delimiter, Glib::RefPtr<Gtk::TreeStore> model, size_t pos, Gtk::TreeModel::Row row, Glib::RefPtr<Gtk::TreeSelection> treeSelection);
 
 protected:
 
@@ -111,7 +111,6 @@ protected:
 			add(rootdir);
 			add(path);
 			add(label); //Label in UI
-			add(preset);
 			add(bank);
 			add(program);
 		}
@@ -119,7 +118,6 @@ protected:
 		Gtk::TreeModelColumn<Glib::ustring> rootdir;
 		Gtk::TreeModelColumn<Glib::ustring> path;
 		Gtk::TreeModelColumn<Glib::ustring> label;
-		Gtk::TreeModelColumn<Glib::ustring> preset;
 		Gtk::TreeModelColumn<int> bank;
 		Gtk::TreeModelColumn<int> program;
 	};

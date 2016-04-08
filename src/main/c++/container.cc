@@ -50,272 +50,185 @@
 
 EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
-		emap = (new Gtk::Window())->gobj();
+	emap = (new Gtk::Window())->gobj();
 
-		std::cout << "made top emap window:" << std::endl;
+	std::cout << "made top emap window:" << std::endl;
 
-		set_title("EMAP - Easy Midi Audio Production");
+	set_title("EMAP - Easy Midi Audio Production");
 
-		std::cout << "set title:" << std::endl;
+	std::cout << "set title:" << std::endl;
 
-		synth = synth_new;
+	synth = synth_new;
 
-		scrolled = new Gtk::ScrolledWindow();
-		path_container = new Gtk::Grid();
+	scrolled = new Gtk::ScrolledWindow();
+	path_container = new Gtk::Grid();
 
-		std::cout << "made container and path_container:" << std::endl;
+	std::cout << "made container and path_container:" << std::endl;
 
-		set_root_folder_button = new Gtk::Button("Set Root Folder");
-		quit_button = new Gtk::Button("Quit");
-		expand_all_button = new Gtk::Button("Expand All");
-		collapse_all_button = new Gtk::Button("Collapse All");
+	set_root_folder_button = new Gtk::Button("Set Root Folder");
+	quit_button = new Gtk::Button("Quit");
+	expand_all_button = new Gtk::Button("Expand All");
+	collapse_all_button = new Gtk::Button("Collapse All");
 
-		std::cout << "buttons:" << std::endl;
+	std::cout << "buttons:" << std::endl;
 
-		//setup the TreeView
-		model = Gtk::TreeStore::create(columns);
-		treeview = new Gtk::TreeView(model);//GTK_TREE_VIEW(gtk_tree_view_new())
-		std::cout << "created model:" << std::endl;
+	//setup the TreeView
+	model = Gtk::TreeStore::create(columns);
+	treeview = new Gtk::TreeView(model);//GTK_TREE_VIEW(gtk_tree_view_new())
+	std::cout << "created model:" << std::endl;
 
-		treeview->set_model(model);
+	treeview->set_model(model);
 
-		treeview->append_column("", columns.label);
+	treeview->append_column("", columns.label);
 
-		treeview->signal_key_press_event().connect(
-				sigc::mem_fun(this,
-						&EmapContainer::on_key_press_or_release_event));
-		treeview->signal_key_release_event().connect(
-				sigc::mem_fun(this,
-						&EmapContainer::on_key_press_or_release_event));
-		treeview->add_events(
-				Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+	treeview->signal_key_press_event().connect(
+			sigc::mem_fun(this,
+					&EmapContainer::on_key_press_or_release_event));
+	treeview->signal_key_release_event().connect(
+			sigc::mem_fun(this,
+					&EmapContainer::on_key_press_or_release_event));
+	treeview->add_events(
+			Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
 
-		std::cout << "connected tree signals:" << std::endl;
+	std::cout << "connected tree signals:" << std::endl;
 
-		//connect the signals
-		set_root_folder_button->signal_clicked().connect(
-				sigc::bind<EmapContainer*>(
-						sigc::mem_fun(*this, &EmapContainer::on_button_rootdir),
-						this));
+	//connect the signals
+	set_root_folder_button->signal_clicked().connect(
+			sigc::bind<EmapContainer*>(
+					sigc::mem_fun(*this, &EmapContainer::on_button_rootdir),
+					this));
 
-		quit_button->signal_clicked().connect(
-				sigc::mem_fun(*this, &EmapContainer::on_button_quit), this);
+	quit_button->signal_clicked().connect(
+			sigc::mem_fun(*this, &EmapContainer::on_button_quit), this);
 
-		expand_all_button->signal_clicked().connect(
-				sigc::bind<GtkTreeView*>(
-						sigc::mem_fun(*this, &EmapContainer::on_button_expand),
-						treeview->gobj()));
+	expand_all_button->signal_clicked().connect(
+			sigc::bind<GtkTreeView*>(
+					sigc::mem_fun(*this, &EmapContainer::on_button_expand),
+					treeview->gobj()));
 
-		collapse_all_button->signal_clicked().connect(
-				sigc::bind<GtkTreeView*>(
-						sigc::mem_fun(*this,
-								&EmapContainer::on_button_collapse), treeview->gobj()));
+	collapse_all_button->signal_clicked().connect(
+			sigc::bind<GtkTreeView*>(
+					sigc::mem_fun(*this,
+							&EmapContainer::on_button_collapse), treeview->gobj()));
 
-		//Connect signal:signal_row_activated
-		Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
-				treeview->get_selection();
+	//Connect signal:signal_row_activated
+	Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
+			treeview->get_selection();
 
-		refTreeSelection->signal_changed().connect(
-				sigc::bind<Gtk::TreeView*>(
-						sigc::mem_fun(*this,
-								&EmapContainer::on_selection_changed),
-						treeview));
+	refTreeSelection->signal_changed().connect(
+			sigc::bind<Gtk::TreeView*>(
+					sigc::mem_fun(*this,
+							&EmapContainer::on_selection_changed),
+					treeview));
 
-		//add the path_* widgets to the path_container
+	//add the path_* widgets to the path_container
 
 
-		path_container->attach(*set_root_folder_button, 0, 0, 1, 1);
-		path_container->attach(*expand_all_button, 1, 0, 1, 1);
-		path_container->attach(*collapse_all_button, 2, 0, 1, 1);
-		path_container->attach(*quit_button, 3, 0, 1, 1);
+	path_container->attach(*set_root_folder_button, 0, 0, 1, 1);
+	path_container->attach(*expand_all_button, 1, 0, 1, 1);
+	path_container->attach(*collapse_all_button, 2, 0, 1, 1);
+	path_container->attach(*quit_button, 3, 0, 1, 1);
 
-		//Setup the ScrolledWindow and add the TreeView in it
-		scrolled->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-		scrolled->add(*(treeview));
+	//Setup the ScrolledWindow and add the TreeView in it
+	scrolled->set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+	scrolled->add(*(treeview));
 
-		scrolled->set_min_content_width(400);
-		scrolled->set_min_content_height(400);
+	scrolled->set_min_content_width(400);
+	scrolled->set_min_content_height(400);
 
-		path_container->attach(*scrolled, 0, 1, 4, 1);
+	path_container->attach(*scrolled, 0, 1, 4, 1);
 
-		//finally add the container to the main window and show all children
-		add(*path_container);
+	//finally add the container to the main window and show all children
+	add(*path_container);
 
-		//set a default size
-		//set_default_size(400, 400);
-		//gtk_window_set_default_size(GTK_WINDOW(emap), 400, 400);
+	//set a default size
+	//set_default_size(400, 400);
+	//gtk_window_set_default_size(GTK_WINDOW(emap), 400, 400);
 
-		//set up the root folder
-		passwd *pw = getpwuid(getuid());
-		home_dir = pw->pw_dir;
-		rootdir = home_dir + "/emap";
+	//set up the root folder
+	passwd *pw = getpwuid(getuid());
+	home_dir = pw->pw_dir;
+	rootdir = home_dir + "/emap";
 
-		config_file = home_dir + "/.config/emap/emapconfig.json";
-		std::cout << "root foler: '" << rootdir
-			<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience a startup issue."
-			<< std::endl;
+	config_file = home_dir + "/.config/emap/emapconfig.json";
+	std::cout << "root foler: '" << rootdir
+		<< "'.  Change this in ~/.config/emap/emapconfig.json if you experience a startup issue."
+		<< std::endl;
 
-		JsonParser *parser = json_parser_new ();
-		bool file_exists = json_parser_load_from_file (parser,
-                            config_file.c_str(),
-                            NULL);
-    
-		if(file_exists){
-			JsonReader *reader = json_reader_new (json_parser_get_root (parser));
-			json_reader_read_member (reader, "rootdir");
-			rootdir = json_reader_get_string_value (reader);
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "path");
-			path = json_reader_get_string_value (reader);
-			//nodepath "2:4" refers to the fifth child of the third node.
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "nodepath");
-			nodepath = json_reader_get_string_value (reader);
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "label");
-			label = json_reader_get_string_value (reader);
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "preset");
-			preset = json_reader_get_string_value (reader);
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "bank");
-			bank = atoi(json_reader_get_string_value (reader));
-			json_reader_end_member (reader);
-			json_reader_read_member (reader, "program");
-			program = atoi(json_reader_get_string_value (reader));
-			json_reader_end_member (reader);
-			g_object_unref (reader);
-			std::cout << "config file exists.  Restore state from: " << std::endl;
-			std::cout << "rootdir: " << rootdir << std::endl;
-			std::cout << "path: " << path << std::endl;
-			std::cout << "nodepath: " << nodepath << std::endl;
-			std::cout << "label: " << label << std::endl;
-			std::cout << "preset: " << preset << std::endl;
-			std::cout << "bank: " << bank << std::endl;
-			std::cout << "program: " << program << std::endl;
-		} else {
-			std::cout
-				<< "config file doesn't exist. create config file with default root folder: "
-				<< rootdir << std::endl;
-			save_state(rootdir,"","","","",-1,-1);
-		}
-		g_object_unref (parser);
+	JsonParser *parser = json_parser_new ();
+	bool file_exists = json_parser_load_from_file (parser,
+						config_file.c_str(),
+						NULL);
 
-		Gtk::TreeModel::Row row;
+	if(file_exists){
+		JsonReader *reader = json_reader_new (json_parser_get_root (parser));
+		json_reader_read_member (reader, "rootdir");
+		rootdir = json_reader_get_string_value (reader);
+		json_reader_end_member (reader);
+		json_reader_read_member (reader, "path");
+		path = json_reader_get_string_value (reader);
+		//nodepath "2:4" refers to the fifth child of the third node.
+		json_reader_end_member (reader);
+		json_reader_read_member (reader, "nodepath");
+		nodepath = json_reader_get_string_value (reader);
+		json_reader_end_member (reader);
+		json_reader_read_member (reader, "label");
+		label = json_reader_get_string_value (reader);
+		json_reader_end_member (reader);
+		json_reader_read_member (reader, "bank");
+		bank = atoi(json_reader_get_string_value (reader));
+		json_reader_end_member (reader);
+		json_reader_read_member (reader, "program");
+		program = atoi(json_reader_get_string_value (reader));
+		json_reader_end_member (reader);
+		g_object_unref (reader);
+		std::cout << "config file exists.  Restore state from: " << std::endl;
+		std::cout << "rootdir: " << rootdir << std::endl;
+		std::cout << "path: " << path << std::endl;
+		std::cout << "nodepath: " << nodepath << std::endl;
+		std::cout << "label: " << label << std::endl;
+		std::cout << "bank: " << bank << std::endl;
+		std::cout << "program: " << program << std::endl;
+	} else {
+		std::cout
+			<< "config file doesn't exist. create config file with default root folder: "
+			<< rootdir << std::endl;
+		save_state(rootdir,"","","",-1,-1);
+	}
+	g_object_unref (parser);
 
-		//populate the tree
-		std::cout << "tree root folder: " << rootdir << std::endl;
+	Gtk::TreeModel::Row row;
 
-		loadTree(rootdir, rootdir, row);
+	//populate the tree
+	std::cout << "tree root folder: " << rootdir << std::endl;
 
-		show_all_children();
-		
-		//https://developer.gnome.org/gtkmm-tutorial/stable/sec-treeview-selection.html.en/
-		if(file_exists){
-			Glib::RefPtr<Gtk::TreeSelection> treeSelection =
-    treeview->get_selection();
-			
-		std::string localnodepath = nodepath;	
-		
-		std::cout << "localnodepath: " << localnodepath << std::endl;
-		
-std::string delimiter = ":";
-Gtk::TreeModel::Row row2;
-size_t pos = 0;
-std::string token;
+	loadTree(rootdir, rootdir, row);
 
-if((pos = localnodepath.find(delimiter)) != std::string::npos){
-	token = localnodepath.substr(0, pos);
+	show_all_children();
 	
-	std::cout << "token initial: " << token << std::endl;
+	//https://developer.gnome.org/gtkmm-tutorial/stable/sec-treeview-selection.html.en/
+	//conditionally load the soundfont preset
+	if(file_exists && (nodepath.compare("") != 0)){
+		
+		std::cout << "nodepath: " << nodepath << std::endl;
 	
-	row2 = model->children()[stoi(token)]; //The token row.
-	if(row2){
-		treeSelection->select(row2);
-		Gtk::TreeModel::iterator iter =
-		treeSelection->get_selected();
-		Gtk::TreePath tpath = model->get_path(iter);
-		treeview->expand_row(tpath, false);
+		Gtk::TreeModel::Row row2;
 		
-		localnodepath.erase(0, pos + delimiter.length());
-		
-		do {
-			pos = localnodepath.find(delimiter);
-			
-			token = localnodepath.substr(0, pos);
-			
-			std::cout << "token again: " << token << std::endl;
-			
-			Gtk::TreeModel::Row row3 = row2->children()[stoi(token)]; //The token row.
-			treeSelection->select(row3);
-			Gtk::TreeModel::iterator iter =
-			treeSelection->get_selected();
-			Gtk::TreePath tpath2 = model->get_path(iter);
-			treeview->expand_row(tpath2, false);
-			
-			localnodepath.erase(0, pos + delimiter.length());
-			
-		}while(pos != std::string::npos);
-		
-		if(path.compare("") != 0){
-			//load the soundfont preset
+		Glib::RefPtr<Gtk::TreeSelection> treeSelection =
+			treeview->get_selection();
+	
+		setupDisplay(nodepath, ":", model, 0, row2, treeSelection);
+
+		if(path.compare("") != 0 && is_soundfont(path.c_str())){
 			fluid_synth_sfload(synth, path.c_str(), 1);
 			fluid_synth_bank_select(synth, 0, bank);
 			fluid_synth_program_change(synth, 0, program);
 			fluid_synth_program_reset(synth);
 		}
 		
-	}
-}else {
-	if(localnodepath.compare("") != 0){
-		row2 = model->children()[stoi(localnodepath)]; //The token row.
-		if(row2){
-			treeSelection->select(row2);
-		}
-	}
-}
-
-/*
-size_t pos = 0;
-std::string token;
-while ((pos = nodepath.find(delimiter)) != std::string::npos) {
-    token = nodepath.substr(0, pos);
-    
-    Gtk::TreeModel::Row row2 = model->children()[stoi(token)]; //The token row.
-    
-    nodepath.erase(0, pos + delimiter.length());
-    
-    s.find(delimiter)) != std::string::npos
-}
-*/
-			
-/*		
-Gtk::TreeModel::Row row2 = model->children()[stoi(token)]; //The token row.
-if(row2){
-  treeSelection->select(row2);
-  Gtk::TreeModel::iterator iter =
-				treeSelection->get_selected();
-		Gtk::TreePath path = model->get_path(iter);
-		treeview->expand_row(path, false);
-		
-Gtk::TreeModel::Row row3= row2->children()[2];
-if(row3){
-	treeSelection->select(row3);
+	}		
 	
-}
-	}
-*/	
-
-			//maybe use either of these to load current place.
-			
-			
-			
-			//gtk_tree_view_expand_row (GtkTreeView *tree_view, GtkTreePath *path, gboolean open_all);
-			//gtk_tree_view_expand_to_path (GtkTreeView *tree_view, GtkTreePath *path);
-		}
-		
-		
-		this->hide();
+	this->hide();
 
 }
 
@@ -351,7 +264,7 @@ void EmapContainer::on_button_rootdir(EmapContainer* emap) {
 
 		emap->rootdir = dialog.get_filename();
 
-		save_state(emap->rootdir,"","","","",-1,-1);
+		save_state(emap->rootdir,"","","",-1,-1);
 
 		Gtk::TreeModel::Row row;	//pass an empty row.
 
@@ -422,42 +335,25 @@ void EmapContainer::loadTree(std::string orig_path, std::string path,
 
 		if (file_info->get_file_type() == Gio::FILE_TYPE_DIRECTORY) {
 
-			//std::cout << "found directory." << std::endl;
-
-			//std::cout << "found directory: " << label << std::endl;
-			//std::cout << "in loadTree" << std::endl;
 			file_names.push_back(label);
-
-			//std::cout << "in label: " << label << std::endl;
-
-			//now populate the TreeView
-			//Gtk::TreeModel::Row row = *(model->append());
 
 			char result[strlen(path.c_str()) + strlen(label.c_str())]; // array to hold the result.
 
 			strcpy(result, path.c_str());
 			strcat(result, "/");
 			strcat(result, label.c_str());
-
-			//std::cout << "filenName: " << label << std::endl;
-			//std::cout << "result: " << result << std::endl;
+			
 			//dont display the first folder in the result;
 			if (strcmp(orig_path.c_str(), path.c_str()) == 0) {
-				//model.clear();
-				//std::cout << "orig path, reset model: " << model
-				//	<< std::endl;
-
-				//std::cout << "paths are the same: " << std::endl;
 
 				Gtk::TreeModel::Row rowb = *(model->append());
-				//std::cout << "new row: " << rowb << std::endl;
+				
 				rowb[columns.rootdir] = orig_path;
 				rowb[columns.path] = result;
 				rowb[columns.label] = label;
-				rowb[columns.preset] = "";
 				rowb[columns.bank] = -1;
 				rowb[columns.program] = -1;
-				//std::cout << "rowb: " << rowb << std::endl;
+				
 				loadTree(orig_path, result, rowb);
 			} else {
 
@@ -467,7 +363,6 @@ void EmapContainer::loadTree(std::string orig_path, std::string path,
 				rowb[columns.rootdir] = orig_path;
 				rowb[columns.path] = result;
 				rowb[columns.label] = label;
-				rowb[columns.preset] = "";
 
 				//rowb[columns.path] = result;
 
@@ -504,14 +399,66 @@ void EmapContainer::loadTree(std::string orig_path, std::string path,
 				rownew[columns.rootdir] = orig_path;
 				rownew[columns.path] = result;
 				rownew[columns.label] = label;
-				rownew[columns.preset] = "";
-				//std::cout << "result: " << result << std::endl;
 				rownew[columns.bank] = -1;
 				rownew[columns.program] = -1;
 
 			}
 		}
 	}
+}
+
+Glib::RefPtr<Gtk::TreeSelection> EmapContainer::setupDisplay(std::string nodepath, std::string delimiter, Glib::RefPtr<Gtk::TreeStore> model, size_t pos, Gtk::TreeModel::Row row, Glib::RefPtr<Gtk::TreeSelection> treeSelection) {
+	
+	std::cout << "setupDisplay nodepath: " << nodepath << std::endl;
+	
+	Gtk::TreeModel::Row rownew;
+	
+		if((pos = nodepath.find(delimiter)) != std::string::npos){
+					
+			std::string token = nodepath.substr(0, pos);
+			
+			std::cout << "path token: " << token << std::endl;
+			
+			if (model) {
+				rownew = model->children()[stoi(token)]; //The token row.
+			}else {
+				rownew = row->children()[stoi(token)]; //The token row.
+			}
+			
+			if(rownew){
+				treeSelection->select(rownew);
+				Gtk::TreeModel::iterator iter =
+				treeSelection->get_selected();
+				Gtk::TreePath tpath = model->get_path(iter);
+				treeview->expand_row(tpath, false);			
+				nodepath.erase(0, pos + delimiter.length());
+			}
+			Glib::RefPtr<Gtk::TreeStore> modelnull;
+			return setupDisplay(nodepath,delimiter,modelnull,pos,rownew,treeSelection);
+		}else {
+
+			std::cout << "no more subpaths: " << nodepath << std::endl;
+		
+			if (model) {
+				rownew = model->children()[stoi(nodepath)]; //The token row.
+			}else {
+				rownew = row->children()[stoi(nodepath)]; //The token row.
+			}
+			
+			Gtk::TreeModel::iterator iter =
+				treeview->get_selection()->get_selected();
+		Gtk::TreePath path = model->get_path(iter);
+
+		treeview->expand_row(path, false);
+		
+			if(rownew){
+				treeSelection->select(rownew);
+				std::cout << "row selected: " << std::endl;
+			}
+			
+		}
+	
+	return treeSelection;
 }
 
 bool EmapContainer::is_soundfont(const char * filename) {
@@ -610,7 +557,6 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 		const Glib::ustring rootdir = row[columns.rootdir];
 		const Glib::ustring path = row[columns.path];
 		const Glib::ustring label = row[columns.label];
-		const Glib::ustring preset = row[columns.preset];
 		const int bank = row[columns.bank];
 		const int program = row[columns.program];
 
@@ -618,7 +564,6 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 		std::cout << "path " << path << std::endl;
 		std::cout << "nodepath " << nodepath << std::endl;
 		std::cout << "label " << label << std::endl;
-		std::cout << "preset " << preset << std::endl;
 		std::cout << "bank " << bank << std::endl;
 		std::cout << "program " << program << std::endl;
 
@@ -649,7 +594,6 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 					rowp[columns.rootdir] = rootdir;
 					rowp[columns.path] = path;
 					rowp[columns.label] = Glib::ustring(preset_name);
-					rowp[columns.preset] = Glib::ustring(preset_name);
 					rowp[columns.bank] = iBank;
 					rowp[columns.program] = iProg;
 
@@ -666,21 +610,25 @@ void EmapContainer::on_selection_changed(Gtk::TreeView* treeview) {
 			
 		}
 
-		std::cout << "selection: " << label << ", bank: " << bank
-					<< ", program: " << program << std::endl;
-		save_state(rootdir, path, nodepath, label, preset, bank, program);
+		save_state(rootdir, path, nodepath, label, bank, program);
 	}
 }
 
-void EmapContainer::save_state(std::string rootdir, std::string path, std::string nodepath, std::string label, std::string preset, int bank, int program){
+void EmapContainer::save_state(std::string rootdir, std::string path, std::string nodepath, std::string label, int bank, int program){
 	
-	std::cout << "save state" << std::endl;
+	std::cout << "save state to json fie: with rootdir: " << rootdir << std::endl;
+	std::cout << "path: " << path << std::endl;
+	std::cout << "nodepath: " << nodepath << std::endl;
+	std::cout << "label: " << label << std::endl;
+	std::cout << "bank: " << bank << std::endl;
+	std::cout << "program: " << program << std::endl;
+	
 	//delete the existing file
 	std::remove(config_file.c_str());
 
-	std::cout << "removed existing config file." << std::endl;
+	//std::cout << "removed existing config file." << std::endl;
 	
-	std::cout << "create rootfolder if it doesn't exist: " << rootdir << std::endl;
+	//std::cout << "create rootfolder if it doesn't exist: " << rootdir << std::endl;
 	
 	struct stat st = {0};
 	if (stat(rootdir.c_str(), &st) == -1) {
@@ -697,21 +645,11 @@ void EmapContainer::save_state(std::string rootdir, std::string path, std::strin
 	json_builder_add_string_value (builder, nodepath.c_str());
 	json_builder_set_member_name (builder, "label");
 	json_builder_add_string_value (builder, label.c_str());
-	json_builder_set_member_name (builder, "preset");
-	json_builder_add_string_value (builder, preset.c_str());
 	json_builder_set_member_name (builder, "bank");
 	json_builder_add_string_value (builder, std::to_string(bank).c_str());
 	json_builder_set_member_name (builder, "program");
 	json_builder_add_string_value (builder, std::to_string(program).c_str());
 	json_builder_end_object (builder);
-
-	std::cout << "save state to json fie: with rootdir: " << rootdir << std::endl;
-	std::cout << "path: " << path << std::endl;
-	std::cout << "nodepath: " << nodepath << std::endl;
-	std::cout << "label: " << label << std::endl;
-	std::cout << "preset: " << preset << std::endl;
-	std::cout << "bank: " << bank << std::endl;
-	std::cout << "program: " << program << std::endl;
 
 	JsonGenerator *gen = json_generator_new ();
 	JsonNode * root = json_builder_get_root (builder);
