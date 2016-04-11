@@ -37,7 +37,7 @@
 #include <json-glib/json-glib.h>
 #include <json-glib/json-gobject.h>
 
-EmapContainer::EmapContainer(fluid_synth_t* synth_new, bool is_lv2) {
+EmapContainer::EmapContainer(fluid_synth_t* synth_new) {
 
 	std::cout << "making EMAP container (fluidsynth UI)" << std::endl;
 
@@ -656,7 +656,7 @@ static LV2UI_Handle instantiate(const _LV2UI_Descriptor * descriptor,
 	std::cout << "called gtk_init." << std::endl;
 
 	//allocate an emap instance.
-	EmapContainer* emap = new EmapContainer(NULL, true);
+	EmapContainer* emap = new EmapContainer(NULL);
 
 	if (emap == NULL) {
 		std::cout << "EMAP error: could not start EMAP." << std::endl;

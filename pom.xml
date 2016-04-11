@@ -69,13 +69,6 @@
 								<type>shared</type>
 								<directory>${shared.lib.path}</directory>
 							</lib>
-							<!-- 
-							<lib>
-								<name>${gtklibshared}</name>
-								<type>shared</type>
-								<directory>${shared.lib.path}</directory>
-							</lib>
-							 -->
 							<lib>
 								<name>${gliblib}</name>
 								<type>shared</type>
@@ -143,10 +136,10 @@
 		<shared.lib32.path>/usr/lib</shared.lib32.path>
 		<shared.include.path>/usr/include</shared.include.path>
 		<!-- different for various software see the profiles -->
-		<gdkmmlib>gdkmm-3.0</gdkmmlib>
-		<gtklib>gtk-3.0</gtklib>
-		<gtkmmlib>gtkmm-3.0</gtkmmlib>
-		<gtklibshared>gtk-3</gtklibshared>
+		<gdkmmlib>gdkmm-2.4</gdkmmlib>
+		<gtklib>gtk-2.0</gtklib>
+		<gtkmmlib>gtkmm-2.4</gtkmmlib>
+		<gtklibshared>gtk-2</gtklibshared>
 		<!-- end different for various software see the profiles -->
 		<atklib>atk-1.0</atklib>
 		<atkmmlib>atkmm-1.6</atkmmlib>
@@ -167,19 +160,17 @@
 		<aol>amd64-Linux-gpp</aol>
 		<lv2devlib>lv2-c++-tools</lv2devlib>
 		<lv2lib>lv2/ui.lv2</lv2lib>
-		<gtklibshared>gtk-3</gtklibshared>
 		<atom>lv2/atom.lv2</atom>
 		<midi>lv2/midi.lv2</midi>
 		<urid>lv2/urid.lv2</urid>
-		<binaryType>executable</binaryType>
+		<binaryType>shared</binaryType>
 		<json-glib>json-glib-1.0</json-glib>
 	</properties>
 
 	<profiles>
 		<profile>
-			<id>lv2-gtk2</id>
+			<id>gtk2</id>
 			<properties>
-				<binaryType>shared</binaryType>
 				<gdkmmlib>gdkmm-2.4</gdkmmlib>
 				<gtklib>gtk-2.0</gtklib>
 				<gtkmmlib>gtkmm-2.4</gtkmmlib>
@@ -187,9 +178,12 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>lv2-gtk3</id>
+			<id>gtk3</id>
 			<properties>
-				<binaryType>shared</binaryType>
+				<gdkmmlib>gdkmm-3.0</gdkmmlib>
+				<gtklib>gtk-3.0</gtklib>
+				<gtkmmlib>gtkmm-3.0</gtkmmlib>
+				<gtklibshared>gtk-3</gtklibshared>
 			</properties>
 		</profile>
 	</profiles>
