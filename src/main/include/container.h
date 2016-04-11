@@ -97,7 +97,7 @@ public:
 	void send_ui_disable(EmapContainer* emap);
 	void save_state(std::string rootdir, std::string path, std::string nodepath, std::string label,
 			int bank, int program);
-	Glib::RefPtr<Gtk::TreeSelection> setupDisplay(std::string nodepath, std::string delimiter, Glib::RefPtr<Gtk::TreeStore> model, size_t pos, Gtk::TreeModel::Row row, Glib::RefPtr<Gtk::TreeSelection> treeSelection);
+	Glib::RefPtr<Gtk::TreeSelection> setupDisplay(std::string nodepath, std::string delimiter, bool usemodel, size_t pos, Gtk::TreeModel::Row row, Glib::RefPtr<Gtk::TreeSelection> treeSelection);
 
 protected:
 
