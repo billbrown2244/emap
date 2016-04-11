@@ -166,15 +166,4 @@
 		<json-glib>json-glib-1.0</json-glib>
 	</properties>
 
-	<!-- this lv2 profile is for the gtk3 version of the lib -->
-	<!-- see the gtk2-lv2 branch for the gtk2 version of the lv2 plugin -->
-	<profiles>
-		<profile>
-			<id>lv2</id>
-			<properties>
-			    <binaryType>shared</binaryType>
-			</properties>
-		</profile>
-	</profiles>
-
 </project>
